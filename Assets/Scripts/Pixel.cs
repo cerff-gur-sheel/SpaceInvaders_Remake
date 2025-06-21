@@ -7,7 +7,8 @@ public class Pixel : MonoBehaviour
     public Pixel top;
     public Pixel down;
 
-    [SerializeField] private float destroyNeighborChance = 0.3f;
+    [SerializeField]
+    private float destroyNeighborChance = 0.3f;
 
     void Start()
     {
@@ -28,5 +29,4 @@ public class Pixel : MonoBehaviour
         if (neighbor != null && Random.value < destroyNeighborChance)
             Destroy(neighbor.gameObject);
     }
-
 }

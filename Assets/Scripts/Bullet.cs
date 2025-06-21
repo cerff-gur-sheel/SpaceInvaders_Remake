@@ -1,5 +1,4 @@
 using UnityEngine;
-using System.Collections;
 
 /// <summary>
 /// Handles bullet movement, collision, and sprite animation.
@@ -7,20 +6,25 @@ using System.Collections;
 public class Bullet : MonoBehaviour
 {
     public float speed;
-    [SerializeField] private float maxDistance = 10f;
 
-    [SerializeField] private GameObject red, green;
+    [SerializeField]
+    private float maxDistance = 10f;
+
+    [SerializeField]
+    private GameObject red,
+        green;
 
     [Header("Sprite Animation")]
-    [SerializeField] private Sprite[] sprites;
-    [SerializeField] private float spriteChangeInterval = 0.1f;
- 
-    private SpriteRenderer sr;
+    [SerializeField]
+    private Sprite[] sprites;
+
+    [SerializeField]
+    private float spriteChangeInterval = 0.1f;
 
     public enum BulletType
     {
         Player,
-        Alien
+        Alien,
     }
 
     public BulletType bulletType = BulletType.Player;
@@ -58,21 +62,23 @@ public class Bullet : MonoBehaviour
             red.SetActive(true);
         }
     }
+
     private void OnTriggerEnter2D(Collider2D other)
     {
         // Prevent bullet from hitting objects of the same type
-        if ((bulletType == BulletType.Player && other.CompareTag("Player")) ||
-            (bulletType == BulletType.Alien && other.CompareTag("Alien")))
+        if (
+            (bulletType == BulletType.Player && other.CompareTag("Player"))
+            || (bulletType == BulletType.Alien && other.CompareTag("Alien"))
+        )
             return;
-
 
         if (bulletType == BulletType.Alien && other.CompareTag("Player"))
         {
             // TODO: kill the player
             return;
         }
-         Debug.Log($"{other.tag}");
-       Destroy(gameObject);
+        Debug.Log($"{other.tag}");
+        Destroy(gameObject);
         Destroy(other.gameObject);
     }
 }

@@ -11,14 +11,8 @@ public class GameManager : MonoBehaviour
         InitializeGame();
     }
 
-    private void Update()
-    {
-        // Place per-frame game logic here
-    }
-
     private void InitializeGame()
     {
         Debug.Log("Game Manager Initialized");
-        // Add additional initialization logic here if needed
     }
 }

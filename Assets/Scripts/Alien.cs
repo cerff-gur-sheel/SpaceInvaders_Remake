@@ -4,14 +4,16 @@ public class Alien : MonoBehaviour
 {
     public int Points;
 
-    [SerializeField] private Sprite[] alienSprites;
+    [SerializeField]
+    private Sprite[] alienSprites;
+
     private SpriteRenderer spriteRenderer;
     private int currentSpriteIndex;
 
     public enum State
     {
         Dead,
-        Alive
+        Alive,
     }
 
     public State AlienState { get; private set; } = State.Alive;

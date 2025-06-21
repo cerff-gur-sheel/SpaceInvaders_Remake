@@ -1,5 +1,5 @@
-using UnityEngine;
 using System.Collections;
+using UnityEngine;
 
 /// <summary>
 /// Manages the spawning and movement of alien formations.
@@ -8,21 +8,38 @@ public class AlienManager : MonoBehaviour
 {
     #region Formation Settings
     [Header("Formation Settings")]
-    [SerializeField] private GameObject[] alienPrefabs;
-    [SerializeField] private int columns = 11;
-    [SerializeField] private int rows = 5;
-    [SerializeField] private float spacingX = 0.5f;
-    [SerializeField] private float spacingY = 0.5f;
-    [SerializeField] private int spawnDelayMs = 100;
+    [SerializeField]
+    private GameObject[] alienPrefabs;
+
+    [SerializeField]
+    private int columns = 11;
+
+    [SerializeField]
+    private int rows = 5;
+
+    [SerializeField]
+    private float spacingX = 0.5f;
+
+    [SerializeField]
+    private float spacingY = 0.5f;
+
+    [SerializeField]
+    private int spawnDelayMs = 100;
     #endregion
 
     #region Movement Settings
     [Header("Movement Settings")]
-    [SerializeField] private float moveDistanceX = 0.1f;
+    [SerializeField]
+    private float moveDistanceX = 0.1f;
 
-    [SerializeField] private float moveDistanceY = 0.1f;
-    [SerializeField] private float minX = -1.5f;
-    [SerializeField] private float maxX = 6f;
+    [SerializeField]
+    private float moveDistanceY = 0.1f;
+
+    [SerializeField]
+    private float minX = -1.5f;
+
+    [SerializeField]
+    private float maxX = 6f;
     #endregion
 
     #region Private State
@@ -32,12 +49,17 @@ public class AlienManager : MonoBehaviour
     private bool bunker = true;
     #endregion
 
-    [SerializeField] private GameObject bulletPrefab;
-    [SerializeField] private float bulletSpeed = 6f;
+    [SerializeField]
+    private GameObject bulletPrefab;
 
-    [SerializeField] private float ufoMaxInterval = 15f;
+    [SerializeField]
+    private float bulletSpeed = 6f;
 
-    [SerializeField] private float ufoMinInterval = 30f;
+    [SerializeField]
+    private float ufoMaxInterval = 15f;
+
+    [SerializeField]
+    private float ufoMinInterval = 30f;
 
     private void Awake()
     {
@@ -84,11 +106,12 @@ public class AlienManager : MonoBehaviour
             for (int col = startCol; col != endCol; col += step)
             {
                 GameObject alien = aliens[row][col];
-                if (alien == null) continue;
+                if (alien == null)
+                    continue;
 
                 Alien alienComponent = alien.GetComponent<Alien>();
-                if (alienComponent == null ||
-                    alienComponent.AlienState == Alien.State.Dead) continue;
+                if (alienComponent == null || alienComponent.AlienState == Alien.State.Dead)
+                    continue;
 
                 anyAlive = true;
 
@@ -101,8 +124,7 @@ public class AlienManager : MonoBehaviour
                     bunker = false;
                 }
 
-                if (alien.transform.position.x < minX ||
-                    alien.transform.position.x > maxX)
+                if (alien.transform.position.x < minX || alien.transform.position.x > maxX)
                     shouldChangeDirection = true;
 
                 yield return new WaitForSeconds(1 / 1000f);
@@ -112,18 +134,15 @@ public class AlienManager : MonoBehaviour
         dirX = shouldChangeDirection ? -dirX : dirX;
         changeDirection = shouldChangeDirection;
 
-        if (anyAlive) StartCoroutine(MoveFormationCoroutine());
+        if (anyAlive)
+            StartCoroutine(MoveFormationCoroutine());
     }
 
     private void AlienShoot(Vector3 spawnPosition)
     {
         if (bulletPrefab != null)
         {
-            GameObject bullet = Instantiate(
-                bulletPrefab,
-                spawnPosition,
-                Quaternion.identity
-            );
+            GameObject bullet = Instantiate(bulletPrefab, spawnPosition, Quaternion.identity);
             if (bullet.TryGetComponent<Bullet>(out Bullet bulletComponent))
             {
                 bulletComponent.speed = -Mathf.Abs(bulletSpeed);
@@ -135,30 +154,29 @@ public class AlienManager : MonoBehaviour
 
     private IEnumerator AlienShootCoroutine()
     {
-
         yield return new WaitForSeconds(Random.Range(0.5f, 2f));
 
         var aliveAliens = new System.Collections.Generic.List<GameObject>();
         Player player = FindFirstObjectByType<Player>();
         float playerX = player != null ? player.transform.position.x : 0f;
-        float alignThreshold = 0.5f; // ajuste conforme necessário
+        float alignThreshold = 0.5f;
 
         for (int row = 0; row < rows; row++)
         {
             for (int col = 0; col < columns; col++)
             {
                 GameObject alien = aliens[row][col];
-                if (alien == null) continue;
+                if (alien == null)
+                    continue;
                 Alien alienComponent = alien.GetComponent<Alien>();
                 if (alienComponent != null && alienComponent.AlienState != Alien.State.Dead)
                 {
                     aliveAliens.Add(alien);
 
-                    // Se o alien está próximo do X do jogador, adicione mais vezes para aumentar a chance
                     if (Mathf.Abs(alien.transform.position.x - playerX) < alignThreshold)
                     {
-                        aliveAliens.Add(alien); // Duplicar chance
-                        aliveAliens.Add(alien); // Triplicar chance (opcional)
+                        aliveAliens.Add(alien);
+                        aliveAliens.Add(alien);
                     }
                 }
             }
@@ -179,9 +197,7 @@ public class AlienManager : MonoBehaviour
         yield return new WaitForSeconds(waitTime);
 
         bool fromLeft = Random.value < 0.5f;
-        Vector2 spawnPos = fromLeft
-            ? new Vector2(minX - 1f, 1.25f)
-            : new Vector2(maxX + 1f, 1.25f);
+        Vector2 spawnPos = fromLeft ? new Vector2(minX - 1f, 1.25f) : new Vector2(maxX + 1f, 1.25f);
         int dir = fromLeft ? 1 : -1;
 
         var ufo = Instantiate(alienPrefabs[5], spawnPos, Quaternion.identity);
@@ -193,8 +209,13 @@ public class AlienManager : MonoBehaviour
     {
         float targetX = dir > 0 ? maxX + 2f : minX - 2f;
         float speed = 2f;
-        while (ufo != null && ((dir > 0 && ufo.transform.position.x < targetX) ||
-               (dir < 0 && ufo.transform.position.x > targetX)))
+        while (
+            ufo != null
+            && (
+                (dir > 0 && ufo.transform.position.x < targetX)
+                || (dir < 0 && ufo.transform.position.x > targetX)
+            )
+        )
         {
             ufo.transform.Translate(dir * speed * Time.deltaTime * Vector3.right);
             yield return null;

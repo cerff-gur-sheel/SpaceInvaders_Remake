@@ -3,38 +3,47 @@ using UnityEngine.InputSystem;
 
 public class Player : MonoBehaviour
 {
-    [SerializeField] private float speed = 5f;
-    [SerializeField] private float minX = -1.5f;
-    [SerializeField] private float maxX = 6.5f;
+    [SerializeField]
+    private float speed = 5f;
+
+    [SerializeField]
+    private float minX = -1.5f;
+
+    [SerializeField]
+    private float maxX = 6.5f;
 
     [Header("Shooting")]
-    [SerializeField] private GameObject bulletPrefab;
-    [SerializeField] private Transform bulletSpawnPoint;
-    [SerializeField] private float bulletSpeed = 10f;
+    [SerializeField]
+    private GameObject bulletPrefab;
 
+    [SerializeField]
+    private Transform bulletSpawnPoint;
+
+    [SerializeField]
+    private float bulletSpeed = 10f;
+
+    #region Local Attributes
     private Rigidbody2D rb2d;
     private Vector2 moveInput;
     private InputAction moveAction;
     private InputAction shootAction;
 
     private bool paused = true;
+    #endregion
 
     public void UnPause() => paused = false;
 
     private void Awake()
     {
-        moveAction = new InputAction(
-            type: InputActionType.Value,
-            binding: "<Gamepad>/leftStick");
-        moveAction.AddCompositeBinding("2DVector")
+        moveAction = new InputAction(type: InputActionType.Value, binding: "<Gamepad>/leftStick");
+        moveAction
+            .AddCompositeBinding("2DVector")
             .With("Left", "<Keyboard>/a")
             .With("Right", "<Keyboard>/d")
             .With("Left", "<Keyboard>/leftArrow")
             .With("Right", "<Keyboard>/rightArrow");
 
-        shootAction = new InputAction(
-            type: InputActionType.Button,
-            binding: "<Keyboard>/space");
+        shootAction = new InputAction(type: InputActionType.Button, binding: "<Keyboard>/space");
         shootAction.AddBinding("<Gamepad>/buttonSouth");
     }
 
@@ -67,7 +76,8 @@ public class Player : MonoBehaviour
 
     private void Update()
     {
-        if (paused) return;
+        if (paused)
+            return;
         moveInput = moveAction.ReadValue<Vector2>();
         rb2d.linearVelocity = moveInput * speed;
 
@@ -78,14 +88,16 @@ public class Player : MonoBehaviour
 
     private void OnShoot(InputAction.CallbackContext context)
     {
-        if (paused) return;
+        if (paused)
+            return;
         if (bulletPrefab != null && bulletSpawnPoint != null)
         {
             GameObject bullet = Instantiate(
                 bulletPrefab,
                 bulletSpawnPoint.position,
-                Quaternion.identity);
-            if (bullet.TryGetComponent<Bullet>(out Bullet bulletComponent))
+                Quaternion.identity
+            );
+            if (bullet.TryGetComponent(out Bullet bulletComponent))
                 bulletComponent.speed = bulletSpeed;
         }
     }
