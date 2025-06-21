@@ -1,5 +1,21 @@
 {
     "recommendations": [
-      "visualstudiotoolsforunity.vstuc"
+      // C#
+      "ms-dotnettools.csharp",
+      "ms-dotnettools.csdevkit",
+      "ms-dotnettools.vscode-dotnet-runtime",
+
+      "k--kato.docomment",
+      "revrenlove.c-sharp-utilities",
+
+      // UNITY
+      "visualstudiotoolsforunity.vstuc",
+
+      "PTD.vscode-unitymeta",
+      "kleber-swf.unity-code-snippets",
+
+      // IDENTATION
+      "aaron-bond.better-comments",
+      "streetsidesoftware.code-spell-checker"
     ]
 }
