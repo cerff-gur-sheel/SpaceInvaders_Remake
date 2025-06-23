@@ -112,6 +112,9 @@ MonoBehaviour:
   spriteChangeInterval: 0.1
   bulletType: 0
   BulletStyleType: 1
+  childrenAcs:
+  - {fileID: 2925261365200822842}
+  - {fileID: 276273438646213338}
 --- !u!95 &4943967388258730491
 Animator:
   serializedVersion: 7
@@ -289,6 +292,7 @@ MonoBehaviour:
   spriteChangeInterval: 0.1
   bulletType: 0
   BulletStyleType: 1
+  childrenAcs: []
 --- !u!95 &2925261365200822842
 Animator:
   serializedVersion: 7
@@ -420,6 +424,7 @@ MonoBehaviour:
   spriteChangeInterval: 0.1
   bulletType: 0
   BulletStyleType: 1
+  childrenAcs: []
 --- !u!95 &276273438646213338
 Animator:
   serializedVersion: 7

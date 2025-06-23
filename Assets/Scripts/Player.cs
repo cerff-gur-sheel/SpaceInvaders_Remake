@@ -22,6 +22,8 @@ public class Player : MonoBehaviour
     [SerializeField]
     private float bulletSpeed = 10f;
 
+    private GameManager manager;
+
     #region Local Attributes
     private Rigidbody2D rb2d;
     private Vector2 moveInput;
@@ -63,6 +65,8 @@ public class Player : MonoBehaviour
 
     private void Start()
     {
+        manager = FindFirstObjectByType<GameManager>();
+
         rb2d = gameObject.AddComponent<Rigidbody2D>();
         rb2d.gravityScale = 0;
         rb2d.freezeRotation = true;
@@ -76,8 +80,11 @@ public class Player : MonoBehaviour
 
     private void Update()
     {
+        paused = manager.IsGamePaused;
+
         if (paused)
             return;
+
         moveInput = moveAction.ReadValue<Vector2>();
         rb2d.linearVelocity = moveInput * speed;
 

@@ -47,6 +47,7 @@ public class AlienManager : MonoBehaviour
     private int dirX = 1; // 1 for right, -1 for left
     private bool changeDirection = false;
     private bool bunker = true;
+    private bool isGamingRunning = true;
     #endregion
 
     [SerializeField]
@@ -61,9 +62,46 @@ public class AlienManager : MonoBehaviour
     [SerializeField]
     private float ufoMinInterval = 30f;
 
+    private int _lastRow = 0,
+        _lastCol = 0;
+
+    private GameObject _ufo = null;
+    private int _dir;
+    private bool paused = false;
+    private bool last_paused = false;
+
+    private GameManager manager;
+
+    [SerializeField]
+    private int shoots = 3;
+
+    public void UnPause()
+    {
+        StartCoroutine(MoveFormationCoroutine(_lastRow, _lastCol));
+        StartShootCoroutines();
+        StartCoroutine(UfoSpawnCoroutine());
+        if (_ufo != null)
+            StartCoroutine(MoveUfo(_ufo, _dir));
+
+        Debug.Log("ok");
+    }
+
     private void Awake()
     {
+        manager = FindFirstObjectByType<GameManager>();
         StartCoroutine(SpawnFormationCoroutine());
+    }
+
+    private void Update()
+    {
+        paused = manager.IsGamePaused;
+        if (paused != last_paused)
+        {
+            if (!paused)
+                UnPause();
+
+            last_paused = paused;
+        }
     }
 
     private IEnumerator SpawnFormationCoroutine()
@@ -87,24 +125,53 @@ public class AlienManager : MonoBehaviour
         }
         FindFirstObjectByType<Player>().UnPause();
         StartCoroutine(MoveFormationCoroutine());
-        StartCoroutine(AlienShootCoroutine());
+        StartShootCoroutines();
         StartCoroutine(UfoSpawnCoroutine());
     }
 
-    private IEnumerator MoveFormationCoroutine()
+    private void StartShootCoroutines()
     {
+        for (var i = 0; i < shoots; i++)
+            StartCoroutine(AlienShootCoroutine());
+    }
+
+    private IEnumerator MoveFormationCoroutine(int lastRow = 0, int lastCol = 0)
+    {
+        if (paused)
+        {
+            yield break;
+        }
         bool shouldChangeDirection = false;
         bool anyAlive = false;
         float dirY = changeDirection ? -moveDistanceY : 0;
 
+        bool resumed = lastRow != 0 || lastCol != 0;
         for (int row = rows - 1; row >= 0; row--)
         {
             int startCol = dirX == 1 ? 0 : columns - 1;
             int endCol = dirX == 1 ? columns : -1;
             int step = dirX;
 
+            // If resuming, skip rows before lastRow
+            if (resumed && row > lastRow)
+                continue;
+
             for (int col = startCol; col != endCol; col += step)
             {
+                // If resuming, skip columns before lastCol in the lastRow
+                if (resumed && row == lastRow)
+                {
+                    if ((dirX == 1 && col < lastCol) || (dirX == -1 && col > lastCol))
+                        continue;
+                }
+
+                if (paused)
+                {
+                    _lastRow = row;
+                    _lastCol = col;
+                    yield break;
+                }
+
                 GameObject alien = aliens[row][col];
                 if (alien == null)
                     continue;
@@ -118,14 +185,14 @@ public class AlienManager : MonoBehaviour
                 alien.transform.Translate(new(moveDistanceX * dirX, dirY));
                 alienComponent.ChangeSprite();
 
-                if (bunker && alien.transform.position.y <= -3)
+                if (bunker && alien.transform.position.y <= -4)
                 {
                     Destroy(GameObject.Find("Bunkers"));
                     bunker = false;
                 }
 
-                if (alien.transform.position.x < minX || alien.transform.position.x > maxX)
-                    shouldChangeDirection = true;
+                shouldChangeDirection =
+                    alien.transform.position.x < minX || alien.transform.position.x > maxX;
 
                 yield return new WaitForSeconds(1 / 1000f);
             }
@@ -136,6 +203,8 @@ public class AlienManager : MonoBehaviour
 
         if (anyAlive)
             StartCoroutine(MoveFormationCoroutine());
+
+        isGamingRunning = anyAlive;
     }
 
     private void AlienShoot(Vector3 spawnPosition)
@@ -152,9 +221,36 @@ public class AlienManager : MonoBehaviour
         }
     }
 
+    private IEnumerator UfoSpawnCoroutine()
+    {
+        if (!isGamingRunning || paused)
+            yield break;
+
+        float waitTime = Random.Range(ufoMinInterval, ufoMaxInterval);
+        yield return new WaitForSeconds(waitTime);
+
+        if (!isGamingRunning || paused)
+            yield break;
+
+        bool fromLeft = Random.value < 0.5f;
+        Vector2 spawnPos = fromLeft ? new Vector2(minX - 1f, 1.25f) : new Vector2(maxX + 1f, 1.25f);
+        int dir = fromLeft ? 1 : -1;
+
+        var ufo = Instantiate(alienPrefabs[5], spawnPos, Quaternion.identity);
+        _ufo = ufo;
+        _dir = dir;
+        StartCoroutine(MoveUfo(ufo, dir));
+        StartCoroutine(UfoSpawnCoroutine());
+    }
+
     private IEnumerator AlienShootCoroutine()
     {
+        if (paused)
+            yield break;
+
         yield return new WaitForSeconds(Random.Range(0.5f, 2f));
+        if (!isGamingRunning || paused)
+            yield break;
 
         var aliveAliens = new System.Collections.Generic.List<GameObject>();
         Player player = FindFirstObjectByType<Player>();
@@ -191,20 +287,6 @@ public class AlienManager : MonoBehaviour
         }
     }
 
-    private IEnumerator UfoSpawnCoroutine()
-    {
-        float waitTime = Random.Range(ufoMinInterval, ufoMaxInterval);
-        yield return new WaitForSeconds(waitTime);
-
-        bool fromLeft = Random.value < 0.5f;
-        Vector2 spawnPos = fromLeft ? new Vector2(minX - 1f, 1.25f) : new Vector2(maxX + 1f, 1.25f);
-        int dir = fromLeft ? 1 : -1;
-
-        var ufo = Instantiate(alienPrefabs[5], spawnPos, Quaternion.identity);
-        StartCoroutine(MoveUfo(ufo, dir));
-        StartCoroutine(UfoSpawnCoroutine());
-    }
-
     private IEnumerator MoveUfo(GameObject ufo, int dir)
     {
         float targetX = dir > 0 ? maxX + 2f : minX - 2f;
@@ -218,11 +300,17 @@ public class AlienManager : MonoBehaviour
         )
         {
             ufo.transform.Translate(dir * speed * Time.deltaTime * Vector3.right);
+            if (paused)
+            {
+                ufo.transform.Translate(Vector2.zero);
+                yield break;
+            }
             yield return null;
         }
         if (ufo != null)
         {
             Destroy(ufo);
+            _ufo = null;
         }
     }
 }
