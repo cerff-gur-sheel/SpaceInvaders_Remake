@@ -105,7 +105,7 @@ public class Player : MonoBehaviour
                 Quaternion.identity
             );
             if (bullet.TryGetComponent(out Bullet bulletComponent))
-                bulletComponent.speed = bulletSpeed;
+                bulletComponent.moveSpeed = bulletSpeed;
         }
     }
 }

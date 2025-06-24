@@ -104,17 +104,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 45d670cad0db2c394b86f53ad4ee9973, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 0
-  maxDistance: 10
-  red: {fileID: 8042618170043273383}
-  green: {fileID: 3605564297500255854}
-  sprites: []
-  spriteChangeInterval: 0.1
-  bulletType: 0
-  BulletStyleType: 1
-  childrenAcs:
-  - {fileID: 2925261365200822842}
-  - {fileID: 276273438646213338}
+  moveSpeed: 10
+  maxTravelDistance: 10
+  redVisual: {fileID: 8042618170043273383}
+  greenVisual: {fileID: 3605564297500255854}
+  animationSprites: []
+  spriteAnimationInterval: 0.1
+  childAnimators: []
+  owner: 0
+  bulletStyle: 1
 --- !u!95 &4943967388258730491
 Animator:
   serializedVersion: 7
@@ -284,15 +282,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 45d670cad0db2c394b86f53ad4ee9973, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 0
-  maxDistance: 10
-  red: {fileID: 0}
-  green: {fileID: 0}
-  sprites: []
-  spriteChangeInterval: 0.1
-  bulletType: 0
-  BulletStyleType: 1
-  childrenAcs: []
+  moveSpeed: 10
+  maxTravelDistance: 10
+  redVisual: {fileID: 0}
+  greenVisual: {fileID: 0}
+  animationSprites: []
+  spriteAnimationInterval: 0.1
+  childAnimators: []
+  owner: 0
+  bulletStyle: 1
 --- !u!95 &2925261365200822842
 Animator:
   serializedVersion: 7
@@ -416,15 +414,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 45d670cad0db2c394b86f53ad4ee9973, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 0
-  maxDistance: 10
-  red: {fileID: 0}
-  green: {fileID: 0}
-  sprites: []
-  spriteChangeInterval: 0.1
-  bulletType: 0
-  BulletStyleType: 1
-  childrenAcs: []
+  moveSpeed: 10
+  maxTravelDistance: 10
+  redVisual: {fileID: 0}
+  greenVisual: {fileID: 0}
+  animationSprites: []
+  spriteAnimationInterval: 0.1
+  childAnimators: []
+  owner: 0
+  bulletStyle: 1
 --- !u!95 &276273438646213338
 Animator:
   serializedVersion: 7

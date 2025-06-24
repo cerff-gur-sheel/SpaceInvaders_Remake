@@ -237,10 +237,10 @@ public class AlienManager : MonoBehaviour
             GameObject bullet = Instantiate(bulletPrefab, spawnPosition, Quaternion.identity);
             if (bullet.TryGetComponent(out Bullet bulletComponent))
             {
-                bulletComponent.speed = -Mathf.Abs(bulletSpeed);
-                bulletComponent.bulletType = Bullet.BulletType.Alien;
+                bulletComponent.moveSpeed = -Mathf.Abs(bulletSpeed);
+                bulletComponent.owner = Bullet.BulletOwner.Alien;
                 var type = Random.Range(0, 100) >= 50 ? 1 : 0;
-                bulletComponent.BulletStyleType = type;
+                bulletComponent.bulletStyle = type;
             }
         }
     }

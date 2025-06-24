@@ -5,127 +5,174 @@ using UnityEngine;
 /// </summary>
 public class Bullet : MonoBehaviour
 {
-    public float speed;
+    #region Inspector Fields
 
-    [SerializeField]
-    private float maxDistance = 10f;
+    [Header("Movement")]
+    [Tooltip("Bullet movement speed.")]
+    public float moveSpeed = 10f;
 
+    [Tooltip("Maximum distance bullet can travel before being destroyed.")]
     [SerializeField]
-    private GameObject red,
-        green;
+    private float maxTravelDistance = 10f;
+
+    [Header("Bullet Visuals")]
+    [Tooltip("GameObject for red bullet visual.")]
+    [SerializeField]
+    private GameObject redVisual;
+
+    [Tooltip("GameObject for green bullet visual.")]
+    [SerializeField]
+    private GameObject greenVisual;
 
     [Header("Sprite Animation")]
+    [Tooltip("Sprites for bullet animation.")]
     [SerializeField]
-    private Sprite[] sprites;
+    private Sprite[] animationSprites;
 
+    [Tooltip("Interval between sprite changes.")]
     [SerializeField]
-    private float spriteChangeInterval = 0.1f;
+    private float spriteAnimationInterval = 0.1f;
 
-    public enum BulletType
+    [Header("Animator")]
+    [Tooltip("Animators for child visuals (0: red, 1: green).")]
+    [SerializeField]
+    private Animator[] childAnimators;
+
+    #endregion
+
+    #region Bullet Type
+
+    public enum BulletOwner
     {
         Player,
         Alien,
     }
 
-    public BulletType bulletType = BulletType.Player;
+    [Tooltip("Who fired the bullet.")]
+    public BulletOwner owner = BulletOwner.Player;
 
-    public int BulletStyleType = 1;
+    [Tooltip("Bullet style for animation.")]
+    public int bulletStyle = 1;
 
-    private Vector3 startPosition;
+    #endregion
 
-    private Rigidbody2D rb2d;
+    #region Private Fields
 
-    private GameManager manager;
+    private Vector3 _spawnPosition;
+    private Rigidbody2D _rigidbody2D;
+    private GameManager _gameManager;
+    private Animator _animator;
+    private bool _wasPaused = false;
 
-    private Animator ac;
+    #endregion
 
-    [SerializeField]
-    private Animator[] childrenAcs; // 0 red 1 green
+    #region Properties
 
-    private bool lastPause = false;
+    private bool IsGamePaused => _gameManager != null && _gameManager.IsGamePaused;
 
-    private bool IsPaused => manager != null && manager.IsGamePaused;
+    #endregion
 
-    public void Pause()
-    {
-        rb2d.linearVelocity = Vector2.zero;
-        ac.speed = 0;
-        foreach (var childrenAc in childrenAcs)
-            childrenAc.speed = 0;
-    }
-
-    public void UnPause()
-    {
-        rb2d.linearVelocity = Vector2.up * speed;
-        ac.speed = 1;
-        foreach (var childrenAc in childrenAcs)
-            childrenAc.speed = 0;
-    }
+    #region Unity Methods
 
     private void Start()
     {
-        manager = FindFirstObjectByType<GameManager>();
-        rb2d = gameObject.AddComponent<Rigidbody2D>();
-        rb2d.freezeRotation = true;
-        rb2d.gravityScale = 0;
-        rb2d.linearVelocity = Vector2.up * speed;
+        _gameManager = FindFirstObjectByType<GameManager>();
 
-        ac = GetComponent<Animator>();
-        ac.SetInteger("bullet", BulletStyleType);
-        foreach (var childrenAc in childrenAcs)
-            childrenAc.SetInteger("bullet", BulletStyleType);
+        _rigidbody2D = gameObject.AddComponent<Rigidbody2D>();
+        _rigidbody2D.freezeRotation = true;
+        _rigidbody2D.gravityScale = 0;
+        _rigidbody2D.linearVelocity = Vector2.up * moveSpeed;
 
-        startPosition = transform.position;
+        _animator = GetComponent<Animator>();
+        _animator.SetFloat("bullet", bulletStyle);
+
+        foreach (var childAnimator in childAnimators)
+            childAnimator.SetInteger("bullet", bulletStyle);
+
+        _spawnPosition = transform.position;
     }
 
     private void Update()
     {
-        if (IsPaused != lastPause)
-        {
-            if (IsPaused)
-                Pause();
-            else
-                UnPause();
+        HandlePauseState();
 
-            lastPause = IsPaused;
-        }
-
-        if (Vector3.Distance(transform.position, startPosition) > maxDistance)
+        if (Vector3.Distance(transform.position, _spawnPosition) > maxTravelDistance)
             Destroy(gameObject);
 
-        // Sprite color
-        if (transform.position.y < 0)
-        {
-            green.SetActive(true);
-            red.SetActive(false);
-        }
-        else
-        {
-            green.SetActive(false);
-            red.SetActive(true);
-        }
+        UpdateVisualsByPosition();
     }
 
     private void OnTriggerEnter2D(Collider2D other)
     {
+        HandleCollision(other);
+    }
+
+    #endregion
+
+    #region Pause Handling
+
+    /// <summary>
+    /// Handles pausing and resuming bullet movement and animation based on game pause state.
+    /// </summary>
+    private void HandlePauseState()
+    {
+        if (IsGamePaused != _wasPaused)
+        {
+            if (IsGamePaused)
+            {
+                _rigidbody2D.linearVelocity = Vector2.zero;
+                _animator.speed = 0;
+                foreach (var childAnimator in childAnimators)
+                    childAnimator.speed = 0;
+            }
+            else
+            {
+                _rigidbody2D.linearVelocity = Vector2.up * moveSpeed;
+                _animator.speed = 1;
+                foreach (var childAnimator in childAnimators)
+                    childAnimator.speed = 1;
+            }
+
+            _wasPaused = IsGamePaused;
+        }
+    }
+
+    #endregion
+
+    #region Visuals
+
+    private void UpdateVisualsByPosition()
+    {
+        bool isBelowZero = transform.position.y < -2;
+        greenVisual.SetActive(isBelowZero);
+        redVisual.SetActive(!isBelowZero);
+    }
+
+    #endregion
+
+    #region Collision
+
+    private void HandleCollision(Collider2D other)
+    {
         const string PlayerTag = "Player";
         const string AlienTag = "Alien";
 
-        bool isSameTypeCollision =
-            (bulletType == BulletType.Player && other.CompareTag(PlayerTag))
-            || (bulletType == BulletType.Alien && other.CompareTag(AlienTag));
+        bool isFriendlyFire =
+            (owner == BulletOwner.Player && other.CompareTag(PlayerTag))
+            || (owner == BulletOwner.Alien && other.CompareTag(AlienTag));
 
-        if (isSameTypeCollision)
+        if (isFriendlyFire)
             return;
 
         Destroy(gameObject);
 
-        if (bulletType == BulletType.Alien && other.CompareTag(PlayerTag))
+        if (owner == BulletOwner.Alien && other.CompareTag(PlayerTag))
         {
-            // TODO: kill the player
+            // TODO: Implement player death logic
             return;
         }
 
         Destroy(other.gameObject);
     }
+    #endregion
 }
