@@ -55,7 +55,7 @@ public class Alien : MonoBehaviour
         boxCollider.autoTiling = true;
 
         SetSprite(_currentAnimationFrame);
-        manager = FindFirstObjectByType<GameManager>();
+        manager = FindAnyObjectByType<GameManager>();
     }
 
     private void OnDestroy()

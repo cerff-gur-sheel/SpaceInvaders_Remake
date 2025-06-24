@@ -104,7 +104,7 @@ public class Bullet : MonoBehaviour
 
     private void Start()
     {
-        _gameManager = FindFirstObjectByType<GameManager>();
+        _gameManager = FindAnyObjectByType<GameManager>();
 
         _rigidbody2D = gameObject.AddComponent<Rigidbody2D>();
         _rigidbody2D.freezeRotation = true;

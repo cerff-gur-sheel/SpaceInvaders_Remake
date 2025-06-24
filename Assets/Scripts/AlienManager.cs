@@ -80,7 +80,7 @@ public class AlienManager : MonoBehaviour
 
     private void Awake()
     {
-        gameManager = FindFirstObjectByType<GameManager>();
+        gameManager = FindAnyObjectByType<GameManager>();
         StartCoroutine(SpawnFormationCoroutine());
     }
 
@@ -107,10 +107,12 @@ public class AlienManager : MonoBehaviour
                 yield return new WaitForSeconds(spawnDelayMs / 1000f);
             }
         }
-        FindFirstObjectByType<Player>().UnPause();
+        FindAnyObjectByType<Player>().UnPause();
         StartCoroutine(MoveFormationCoroutine());
         StartAlienShootCoroutines();
         StartCoroutine(UfoSpawnCoroutine());
+
+        FindAnyObjectByType<Player>().UnPause();
     }
 
     private IEnumerator MoveFormationCoroutine()
@@ -198,7 +200,7 @@ public class AlienManager : MonoBehaviour
             yield return new WaitUntil(() => IsPaused == false);
 
         var aliveAliens = new System.Collections.Generic.List<GameObject>();
-        Player player = FindFirstObjectByType<Player>();
+        Player player = FindAnyObjectByType<Player>();
         float playerX = player != null ? player.transform.position.x : 0f;
         float alignThreshold = 0.5f;
 

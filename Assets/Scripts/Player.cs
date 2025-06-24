@@ -35,6 +35,8 @@ public class Player : MonoBehaviour
 
     public void UnPause() => paused = false;
 
+    public void Pause() => paused = true;
+
     private void Awake()
     {
         moveAction = new InputAction(type: InputActionType.Value, binding: "<Gamepad>/leftStick");
@@ -65,7 +67,7 @@ public class Player : MonoBehaviour
 
     private void Start()
     {
-        manager = FindFirstObjectByType<GameManager>();
+        manager = FindAnyObjectByType<GameManager>();
 
         rb2d = gameObject.AddComponent<Rigidbody2D>();
         rb2d.gravityScale = 0;
@@ -76,12 +78,12 @@ public class Player : MonoBehaviour
 
         if (bulletPrefab == null)
             Debug.LogError("Bullet Prefab is not assigned!");
+
+        Pause();
     }
 
     private void Update()
     {
-        paused = manager.IsGamePaused;
-
         if (paused)
             return;
 
