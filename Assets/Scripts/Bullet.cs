@@ -33,11 +33,6 @@ public class Bullet : MonoBehaviour
     [SerializeField]
     private float spriteAnimationInterval = 0.1f;
 
-    [Header("Animator")]
-    [Tooltip("Animators for child visuals (0: red, 1: green).")]
-    [SerializeField]
-    private Animator[] childAnimators;
-
     #endregion
 
     #region Bullet Type
@@ -51,8 +46,41 @@ public class Bullet : MonoBehaviour
     [Tooltip("Who fired the bullet.")]
     public BulletOwner owner = BulletOwner.Player;
 
-    [Tooltip("Bullet style for animation.")]
-    public int bulletStyle = 1;
+    private int _bulletStyle;
+
+    public int BulletStyle
+    {
+        get => _bulletStyle;
+        set
+        {
+            if (_bulletStyle != value)
+            {
+                _bulletStyle = value;
+                childAnimators = new Animator[2];
+                childAnimators[0] = redVisual.GetComponent<Animator>();
+                childAnimators[1] = greenVisual.GetComponent<Animator>();
+
+                _animator = GetComponent<Animator>();
+                _animator.SetFloat("bullet", BulletStyle);
+
+                foreach (var childAnimator in childAnimators)
+                    childAnimator.SetFloat("bullet", BulletStyle);
+            }
+        }
+    }
+
+    private void OnBulletStyleChanged()
+    {
+        if (_animator != null)
+            _animator.SetFloat("bullet", _bulletStyle);
+
+        if (childAnimators != null)
+        {
+            foreach (var childAnimator in childAnimators)
+                if (childAnimator != null)
+                    childAnimator.SetFloat("bullet", _bulletStyle);
+        }
+    }
 
     #endregion
 
@@ -63,7 +91,7 @@ public class Bullet : MonoBehaviour
     private GameManager _gameManager;
     private Animator _animator;
     private bool _wasPaused = false;
-
+    private Animator[] childAnimators; // 0: red 1: green.
     #endregion
 
     #region Properties
@@ -83,11 +111,7 @@ public class Bullet : MonoBehaviour
         _rigidbody2D.gravityScale = 0;
         _rigidbody2D.linearVelocity = Vector2.up * moveSpeed;
 
-        _animator = GetComponent<Animator>();
-        _animator.SetFloat("bullet", bulletStyle);
-
-        foreach (var childAnimator in childAnimators)
-            childAnimator.SetInteger("bullet", bulletStyle);
+        BulletStyle = _bulletStyle;
 
         _spawnPosition = transform.position;
     }

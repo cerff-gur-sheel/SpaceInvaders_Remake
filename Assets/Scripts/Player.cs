@@ -97,6 +97,7 @@ public class Player : MonoBehaviour
     {
         if (paused)
             return;
+
         if (bulletPrefab != null && bulletSpawnPoint != null)
         {
             GameObject bullet = Instantiate(
@@ -105,7 +106,11 @@ public class Player : MonoBehaviour
                 Quaternion.identity
             );
             if (bullet.TryGetComponent(out Bullet bulletComponent))
+            {
                 bulletComponent.moveSpeed = bulletSpeed;
+                bulletComponent.owner = Bullet.BulletOwner.Player;
+                bulletComponent.BulletStyle = 0;
+            }
         }
     }
 }

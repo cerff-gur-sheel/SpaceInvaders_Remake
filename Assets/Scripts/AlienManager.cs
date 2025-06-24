@@ -139,13 +139,16 @@ public class AlienManager : MonoBehaviour
                         continue;
 
                     Alien alienComponent = alien.GetComponent<Alien>();
-                    if (alienComponent == null || alienComponent.AlienState == Alien.State.Dead)
+                    if (
+                        alienComponent == null
+                        || alienComponent.CurrentState == Alien.AlienState.Dead
+                    )
                         continue;
 
                     foundAlive = true;
 
                     alien.transform.Translate(new Vector3(moveDistanceX * directionX, moveY));
-                    alienComponent.ChangeSprite();
+                    alienComponent.AdvanceAnimationFrame();
 
                     if (bunkersActive && alien.transform.position.y <= -4)
                     {
@@ -207,7 +210,7 @@ public class AlienManager : MonoBehaviour
                 if (alien == null)
                     continue;
                 Alien alienComponent = alien.GetComponent<Alien>();
-                if (alienComponent != null && alienComponent.AlienState != Alien.State.Dead)
+                if (alienComponent != null && alienComponent.CurrentState != Alien.AlienState.Dead)
                 {
                     aliveAliens.Add(alien);
 
@@ -240,7 +243,7 @@ public class AlienManager : MonoBehaviour
                 bulletComponent.moveSpeed = -Mathf.Abs(bulletSpeed);
                 bulletComponent.owner = Bullet.BulletOwner.Alien;
                 var type = Random.Range(0, 100) >= 50 ? 1 : 0;
-                bulletComponent.bulletStyle = type;
+                bulletComponent.BulletStyle = type;
             }
         }
     }

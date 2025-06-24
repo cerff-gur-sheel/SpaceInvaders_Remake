@@ -82,5 +82,5 @@
     "minimap.background": "#00000000",
     "scrollbar.shadow": "#00000000"
   },
-  "cSpell.words": ["Behaviour", "Mathf", "Rigidbody"]
+  "cSpell.words": ["Behaviour", "Mathf", "Rigidbody", "UGUI"]
 }

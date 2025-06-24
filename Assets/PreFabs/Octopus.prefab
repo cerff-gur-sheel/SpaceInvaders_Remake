@@ -65,6 +65,10 @@ PrefabInstance:
       value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 3960806945246510793, guid: 35b958a396462390ba154ae7d9145902, type: 3}
+      propertyPath: points
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 3960806945246510793, guid: 35b958a396462390ba154ae7d9145902, type: 3}
       propertyPath: alienSprites.Array.size
       value: 2
       objectReference: {fileID: 0}
