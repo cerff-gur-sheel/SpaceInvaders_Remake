@@ -1,4 +1,3 @@
-using Mono.Cecil.Cil;
 using UnityEngine;
 
 /// <summary>
@@ -43,12 +42,12 @@ public class Bullet : MonoBehaviour
     [SerializeField]
     private Animator[] childrenAcs; // 0 red 1 green
 
-    private bool paused = false;
     private bool lastPause = false;
+
+    private bool IsPaused => manager != null && manager.IsGamePaused;
 
     public void Pause()
     {
-        paused = true;
         rb2d.linearVelocity = Vector2.zero;
         ac.speed = 0;
         foreach (var childrenAc in childrenAcs)
@@ -57,7 +56,6 @@ public class Bullet : MonoBehaviour
 
     public void UnPause()
     {
-        paused = false;
         rb2d.linearVelocity = Vector2.up * speed;
         ac.speed = 1;
         foreach (var childrenAc in childrenAcs)
@@ -82,16 +80,14 @@ public class Bullet : MonoBehaviour
 
     private void Update()
     {
-        paused = manager.IsGamePaused;
-
-        if (paused != lastPause)
+        if (IsPaused != lastPause)
         {
-            if (paused)
+            if (IsPaused)
                 Pause();
             else
                 UnPause();
 
-            lastPause = paused;
+            lastPause = IsPaused;
         }
 
         if (Vector3.Distance(transform.position, startPosition) > maxDistance)
@@ -112,19 +108,24 @@ public class Bullet : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        // Prevent bullet from hitting objects of the same type
-        if (
-            (bulletType == BulletType.Player && other.CompareTag("Player"))
-            || (bulletType == BulletType.Alien && other.CompareTag("Alien"))
-        )
+        const string PlayerTag = "Player";
+        const string AlienTag = "Alien";
+
+        bool isSameTypeCollision =
+            (bulletType == BulletType.Player && other.CompareTag(PlayerTag))
+            || (bulletType == BulletType.Alien && other.CompareTag(AlienTag));
+
+        if (isSameTypeCollision)
             return;
 
-        if (bulletType == BulletType.Alien && other.CompareTag("Player"))
+        Destroy(gameObject);
+
+        if (bulletType == BulletType.Alien && other.CompareTag(PlayerTag))
         {
             // TODO: kill the player
             return;
         }
-        Destroy(gameObject);
+
         Destroy(other.gameObject);
     }
 }

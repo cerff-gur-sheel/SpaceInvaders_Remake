@@ -4636,15 +4636,15 @@ MonoBehaviour:
   spacingX: 0.5
   spacingY: 0.5
   spawnDelayMs: 1
-  moveDistanceX: 0.25
+  moveDistanceX: 0.15
   moveDistanceY: 0.35
   minX: -1.4
   maxX: 6.4
   bulletPrefab: {fileID: 3489109310903928420, guid: b0666a3c3f6f09e9185fa5221d5f1006, type: 3}
   bulletSpeed: 6
-  ufoMaxInterval: 15
+  simultaneousShots: 3
   ufoMinInterval: 30
-  shoots: 5
+  ufoMaxInterval: 15
 --- !u!1001 &416296121
 PrefabInstance:
   m_ObjectHideFlags: 0

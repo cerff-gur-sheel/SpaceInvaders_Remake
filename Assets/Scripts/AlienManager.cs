@@ -2,11 +2,12 @@ using System.Collections;
 using UnityEngine;
 
 /// <summary>
-/// Manages the spawning and movement of alien formations.
+/// Manages the spawning, movement, and shooting of alien formations.
 /// </summary>
 public class AlienManager : MonoBehaviour
 {
-    #region Formation Settings
+    #region Inspector Settings
+
     [Header("Formation Settings")]
     [SerializeField]
     private GameObject[] alienPrefabs;
@@ -25,9 +26,7 @@ public class AlienManager : MonoBehaviour
 
     [SerializeField]
     private int spawnDelayMs = 100;
-    #endregion
 
-    #region Movement Settings
     [Header("Movement Settings")]
     [SerializeField]
     private float moveDistanceX = 0.1f;
@@ -40,16 +39,8 @@ public class AlienManager : MonoBehaviour
 
     [SerializeField]
     private float maxX = 6f;
-    #endregion
 
-    #region Private State
-    private GameObject[][] aliens;
-    private int dirX = 1; // 1 for right, -1 for left
-    private bool changeDirection = false;
-    private bool bunker = true;
-    private bool isGamingRunning = true;
-    #endregion
-
+    [Header("Alien Shooting")]
     [SerializeField]
     private GameObject bulletPrefab;
 
@@ -57,52 +48,45 @@ public class AlienManager : MonoBehaviour
     private float bulletSpeed = 6f;
 
     [SerializeField]
-    private float ufoMaxInterval = 15f;
+    private int simultaneousShots = 3;
+
+    [Header("UFO Settings")]
+    [SerializeField]
+    private float ufoMinInterval = 15f;
 
     [SerializeField]
-    private float ufoMinInterval = 30f;
+    private float ufoMaxInterval = 30f;
 
-    private int _lastRow = 0,
-        _lastCol = 0;
+    #endregion
 
-    private GameObject _ufo = null;
-    private int _dir;
-    private bool paused = false;
-    private bool last_paused = false;
+    #region Private Fields
 
-    private GameManager manager;
+    private GameObject[][] aliens;
+    private int directionX = 1; // 1 for right, -1 for left
+    private bool shouldChangeDirection = false;
+    private bool bunkersActive = true;
+    private bool isGameRunning = true;
 
-    [SerializeField]
-    private int shoots = 3;
+    private GameObject activeUfo = null;
 
-    public void UnPause()
-    {
-        StartCoroutine(MoveFormationCoroutine(_lastRow, _lastCol));
-        StartShootCoroutines();
-        StartCoroutine(UfoSpawnCoroutine());
-        if (_ufo != null)
-            StartCoroutine(MoveUfo(_ufo, _dir));
+    private Coroutine[] ShotsCoroutine;
 
-        Debug.Log("ok");
-    }
+    private GameManager gameManager;
+
+    private bool IsPaused => gameManager != null && gameManager.IsGamePaused;
+    #endregion
+
+    #region Unity Methods
 
     private void Awake()
     {
-        manager = FindFirstObjectByType<GameManager>();
+        gameManager = FindFirstObjectByType<GameManager>();
         StartCoroutine(SpawnFormationCoroutine());
     }
 
-    private void Update()
-    {
-        paused = manager.IsGamePaused;
-        if (paused != last_paused)
-        {
-            if (!paused)
-                UnPause();
+    #endregion
 
-            last_paused = paused;
-        }
-    }
+    #region Formation & Movement
 
     private IEnumerator SpawnFormationCoroutine()
     {
@@ -125,132 +109,90 @@ public class AlienManager : MonoBehaviour
         }
         FindFirstObjectByType<Player>().UnPause();
         StartCoroutine(MoveFormationCoroutine());
-        StartShootCoroutines();
+        StartAlienShootCoroutines();
         StartCoroutine(UfoSpawnCoroutine());
     }
 
-    private void StartShootCoroutines()
+    private IEnumerator MoveFormationCoroutine()
     {
-        for (var i = 0; i < shoots; i++)
-            StartCoroutine(AlienShootCoroutine());
-    }
-
-    private IEnumerator MoveFormationCoroutine(int lastRow = 0, int lastCol = 0)
-    {
-        if (paused)
+        while (true)
         {
-            yield break;
-        }
-        bool shouldChangeDirection = false;
-        bool anyAlive = false;
-        float dirY = changeDirection ? -moveDistanceY : 0;
+            if (IsPaused)
+                yield return new WaitUntil(() => IsPaused == false);
 
-        bool resumed = lastRow != 0 || lastCol != 0;
-        for (int row = rows - 1; row >= 0; row--)
-        {
-            int startCol = dirX == 1 ? 0 : columns - 1;
-            int endCol = dirX == 1 ? columns : -1;
-            int step = dirX;
+            bool foundAlive = false;
+            float moveY = shouldChangeDirection ? -moveDistanceY : 0;
 
-            // If resuming, skip rows before lastRow
-            if (resumed && row > lastRow)
-                continue;
-
-            for (int col = startCol; col != endCol; col += step)
+            for (int row = rows - 1; row >= 0; row--)
             {
-                // If resuming, skip columns before lastCol in the lastRow
-                if (resumed && row == lastRow)
+                int startCol = directionX == 1 ? 0 : columns - 1;
+                int endCol = directionX == 1 ? columns : -1;
+                int step = directionX;
+
+                for (int col = startCol; col != endCol; col += step)
                 {
-                    if ((dirX == 1 && col < lastCol) || (dirX == -1 && col > lastCol))
+                    if (IsPaused)
+                        yield return new WaitUntil(() => IsPaused == false);
+
+                    GameObject alien = aliens[row][col];
+                    if (alien == null)
                         continue;
+
+                    Alien alienComponent = alien.GetComponent<Alien>();
+                    if (alienComponent == null || alienComponent.AlienState == Alien.State.Dead)
+                        continue;
+
+                    foundAlive = true;
+
+                    alien.transform.Translate(new Vector3(moveDistanceX * directionX, moveY));
+                    alienComponent.ChangeSprite();
+
+                    if (bunkersActive && alien.transform.position.y <= -4)
+                    {
+                        Destroy(GameObject.Find("Bunkers"));
+                        bunkersActive = false;
+                    }
+
+                    float posX = alien.transform.position.x;
+                    shouldChangeDirection = posX < minX || posX > maxX;
+
+                    yield return new WaitForSeconds(0.001f);
                 }
-
-                if (paused)
-                {
-                    _lastRow = row;
-                    _lastCol = col;
-                    yield break;
-                }
-
-                GameObject alien = aliens[row][col];
-                if (alien == null)
-                    continue;
-
-                Alien alienComponent = alien.GetComponent<Alien>();
-                if (alienComponent == null || alienComponent.AlienState == Alien.State.Dead)
-                    continue;
-
-                anyAlive = true;
-
-                alien.transform.Translate(new(moveDistanceX * dirX, dirY));
-                alienComponent.ChangeSprite();
-
-                if (bunker && alien.transform.position.y <= -4)
-                {
-                    Destroy(GameObject.Find("Bunkers"));
-                    bunker = false;
-                }
-
-                shouldChangeDirection =
-                    alien.transform.position.x < minX || alien.transform.position.x > maxX;
-
-                yield return new WaitForSeconds(1 / 1000f);
             }
-        }
 
-        dirX = shouldChangeDirection ? -dirX : dirX;
-        changeDirection = shouldChangeDirection;
+            if (shouldChangeDirection)
+                directionX = -directionX;
 
-        if (anyAlive)
-            StartCoroutine(MoveFormationCoroutine());
-
-        isGamingRunning = anyAlive;
-    }
-
-    private void AlienShoot(Vector3 spawnPosition)
-    {
-        if (bulletPrefab != null)
-        {
-            GameObject bullet = Instantiate(bulletPrefab, spawnPosition, Quaternion.identity);
-            if (bullet.TryGetComponent<Bullet>(out Bullet bulletComponent))
+            if (!foundAlive)
             {
-                bulletComponent.speed = -Mathf.Abs(bulletSpeed);
-                bulletComponent.bulletType = Bullet.BulletType.Alien;
-                bulletComponent.BulletStyleType = Random.Range(0, 1);
+                isGameRunning = false;
+                yield break;
             }
         }
     }
+    #endregion
 
-    private IEnumerator UfoSpawnCoroutine()
+    #region Alien Shooting
+
+    private void StartAlienShootCoroutines()
     {
-        if (!isGamingRunning || paused)
-            yield break;
+        if (ShotsCoroutine != null)
+        {
+            foreach (var coroutine in ShotsCoroutine)
+                if (coroutine != null)
+                    StopCoroutine(coroutine);
+        }
 
-        float waitTime = Random.Range(ufoMinInterval, ufoMaxInterval);
-        yield return new WaitForSeconds(waitTime);
-
-        if (!isGamingRunning || paused)
-            yield break;
-
-        bool fromLeft = Random.value < 0.5f;
-        Vector2 spawnPos = fromLeft ? new Vector2(minX - 1f, 1.25f) : new Vector2(maxX + 1f, 1.25f);
-        int dir = fromLeft ? 1 : -1;
-
-        var ufo = Instantiate(alienPrefabs[5], spawnPos, Quaternion.identity);
-        _ufo = ufo;
-        _dir = dir;
-        StartCoroutine(MoveUfo(ufo, dir));
-        StartCoroutine(UfoSpawnCoroutine());
+        ShotsCoroutine = new Coroutine[simultaneousShots];
+        for (int i = 0; i < simultaneousShots; i++)
+            ShotsCoroutine[i] = StartCoroutine(AlienShootCoroutine());
     }
 
     private IEnumerator AlienShootCoroutine()
     {
-        if (paused)
-            yield break;
-
         yield return new WaitForSeconds(Random.Range(0.5f, 2f));
-        if (!isGamingRunning || paused)
-            yield break;
+        if (!isGameRunning || IsPaused)
+            yield return new WaitUntil(() => IsPaused == false);
 
         var aliveAliens = new System.Collections.Generic.List<GameObject>();
         Player player = FindFirstObjectByType<Player>();
@@ -271,6 +213,7 @@ public class AlienManager : MonoBehaviour
 
                     if (Mathf.Abs(alien.transform.position.x - playerX) < alignThreshold)
                     {
+                        // Increase chance to shoot if aligned with player
                         aliveAliens.Add(alien);
                         aliveAliens.Add(alien);
                     }
@@ -282,35 +225,84 @@ public class AlienManager : MonoBehaviour
         {
             GameObject shooter = aliveAliens[Random.Range(0, aliveAliens.Count)];
             Vector3 spawnPos = shooter.transform.position + Vector3.down * 0.5f;
-            AlienShoot(spawnPos);
+            SpawnAlienBullet(spawnPos);
             StartCoroutine(AlienShootCoroutine());
         }
     }
 
-    private IEnumerator MoveUfo(GameObject ufo, int dir)
+    private void SpawnAlienBullet(Vector3 spawnPosition)
     {
-        float targetX = dir > 0 ? maxX + 2f : minX - 2f;
-        float speed = 2f;
-        while (
-            ufo != null
-            && (
-                (dir > 0 && ufo.transform.position.x < targetX)
-                || (dir < 0 && ufo.transform.position.x > targetX)
-            )
-        )
+        if (bulletPrefab != null)
         {
-            ufo.transform.Translate(dir * speed * Time.deltaTime * Vector3.right);
-            if (paused)
+            GameObject bullet = Instantiate(bulletPrefab, spawnPosition, Quaternion.identity);
+            if (bullet.TryGetComponent(out Bullet bulletComponent))
             {
-                ufo.transform.Translate(Vector2.zero);
-                yield break;
+                bulletComponent.speed = -Mathf.Abs(bulletSpeed);
+                bulletComponent.bulletType = Bullet.BulletType.Alien;
+                var type = Random.Range(0, 100) >= 50 ? 1 : 0;
+                bulletComponent.BulletStyleType = type;
             }
+        }
+    }
+    #endregion
+
+    #region UFO Logic
+
+    private IEnumerator UfoSpawnCoroutine()
+    {
+        while (isGameRunning)
+        {
+            float waitTime = Random.Range(ufoMinInterval, ufoMaxInterval);
+            yield return new WaitForSeconds(waitTime);
+
+            if (IsPaused)
+                yield return new WaitUntil(() => IsPaused == false);
+
+            if (activeUfo == null)
+            {
+                bool fromLeft = Random.value < 0.5f;
+                Vector2 spawnPos = fromLeft
+                    ? new Vector2(minX - 1f, 1.25f)
+                    : new Vector2(maxX + 1f, 1.25f);
+                int dir = fromLeft ? 1 : -1;
+
+                var ufo = Instantiate(alienPrefabs[5], spawnPos, Quaternion.identity);
+                activeUfo = ufo;
+                StartCoroutine(MoveUfoCoroutine(ufo, dir));
+            }
+        }
+    }
+
+    private IEnumerator MoveUfoCoroutine(GameObject ufo, int direction)
+    {
+        var targetX = direction > 0 ? maxX + 2f : minX - 2f;
+        var speed = 2f;
+
+        while (ufo != null)
+        {
+            if (IsPaused)
+            {
+                yield return new WaitUntil(() => IsPaused == false);
+                continue;
+            }
+
+            var currentX = ufo.transform.position.x;
+            var reachedTarget = direction > 0 ? currentX >= targetX : currentX <= targetX;
+            if (reachedTarget)
+                break;
+
+            var move = direction * speed * Time.deltaTime * Vector3.right;
+            ufo.transform.Translate(move);
+
             yield return null;
         }
+
         if (ufo != null)
         {
             Destroy(ufo);
-            _ufo = null;
+            activeUfo = null;
         }
     }
+
+    #endregion
 }
