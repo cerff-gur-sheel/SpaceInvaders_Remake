@@ -170,6 +170,15 @@ public class Bullet : MonoBehaviour
 
     #endregion
 
+    [SerializeField]
+    private GameObject playerExplosionPrefab;
+
+    [SerializeField]
+    private GameObject bulletExplosionPrefab;
+
+    [SerializeField]
+    private GameObject AlienExplosionPrefab;
+
     #region Collision
 
     private void HandleCollision(Collider2D other)
@@ -178,25 +187,44 @@ public class Bullet : MonoBehaviour
         const string AlienTag = "Alien";
         const string BulletTag = "Bullet";
 
-        bool isFriendlyFire =
-            (owner == BulletOwner.Player && other.CompareTag(PlayerTag))
-            || (owner == BulletOwner.Alien && other.CompareTag(AlienTag));
-
+        bool isFriendlyFire = other.CompareTag(owner.ToString());
         if (isFriendlyFire)
             return;
 
-        if (other.CompareTag(BulletTag))
+        switch (other.tag)
         {
-            // TODO: instantiate bullet destroy animation
+            case PlayerTag:
+                if (playerExplosionPrefab != null)
+                    Instantiate(
+                        playerExplosionPrefab,
+                        other.transform.position,
+                        other.transform.rotation
+                    );
+                break;
+
+            case AlienTag:
+                if (AlienExplosionPrefab != null)
+                    Instantiate(
+                        AlienExplosionPrefab,
+                        other.transform.position,
+                        other.transform.rotation
+                    );
+                break;
+
+            case BulletTag:
+                if (bulletExplosionPrefab != null)
+                    Instantiate(
+                        bulletExplosionPrefab,
+                        other.transform.position,
+                        other.transform.rotation
+                    );
+                break;
+
+            default:
+                break;
         }
+
         Destroy(gameObject);
-
-        if (owner == BulletOwner.Alien && other.CompareTag(PlayerTag))
-        {
-            // TODO: Implement player death logic
-            return;
-        }
-
         Destroy(other.gameObject);
     }
     #endregion
