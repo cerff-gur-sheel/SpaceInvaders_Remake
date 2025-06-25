@@ -29,10 +29,6 @@ public class Bullet : MonoBehaviour
     [SerializeField]
     private Sprite[] animationSprites;
 
-    [Tooltip("Interval between sprite changes.")]
-    [SerializeField]
-    private float spriteAnimationInterval = 0.1f;
-
     #endregion
 
     #region Bullet Type
@@ -180,6 +176,7 @@ public class Bullet : MonoBehaviour
     {
         const string PlayerTag = "Player";
         const string AlienTag = "Alien";
+        const string BulletTag = "Bullet";
 
         bool isFriendlyFire =
             (owner == BulletOwner.Player && other.CompareTag(PlayerTag))
@@ -188,6 +185,10 @@ public class Bullet : MonoBehaviour
         if (isFriendlyFire)
             return;
 
+        if (other.CompareTag(BulletTag))
+        {
+            // TODO: instantiate bullet destroy animation
+        }
         Destroy(gameObject);
 
         if (owner == BulletOwner.Alien && other.CompareTag(PlayerTag))

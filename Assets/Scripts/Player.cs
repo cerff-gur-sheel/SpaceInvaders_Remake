@@ -1,118 +1,222 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+/// <summary>
+/// Controls the player character, including movement and shooting.
+/// </summary>
+[RequireComponent(typeof(Rigidbody2D))]
+[RequireComponent(typeof(BoxCollider2D))]
 public class Player : MonoBehaviour
 {
-    [SerializeField]
-    private float speed = 5f;
+    #region Inspector Fields
 
+    [Header("Movement")]
+    [Tooltip("Player movement speed.")]
+    [SerializeField]
+    private float movementSpeed = 5f;
+
+    [Tooltip("Minimum X position (left boundary).")]
     [SerializeField]
     private float minX = -1.5f;
 
+    [Tooltip("Maximum X position (right boundary).")]
     [SerializeField]
     private float maxX = 6.5f;
 
     [Header("Shooting")]
+    [Tooltip("Prefab of the bullet to instantiate when shooting.")]
     [SerializeField]
     private GameObject bulletPrefab;
 
+    [Tooltip("Transform where bullets are spawned.")]
     [SerializeField]
     private Transform bulletSpawnPoint;
 
+    [Tooltip("Speed at which the bullet moves.")]
     [SerializeField]
-    private float bulletSpeed = 10f;
+    private float bulletMoveSpeed = 10f;
 
-    private GameManager manager;
-
-    #region Local Attributes
-    private Rigidbody2D rb2d;
-    private Vector2 moveInput;
-    private InputAction moveAction;
-    private InputAction shootAction;
-
-    private bool paused = true;
     #endregion
 
-    public void UnPause() => paused = false;
+    #region Private Fields
 
-    public void Pause() => paused = true;
+    private GameManager gameManager;
+    private Rigidbody2D rb2D;
+    private Vector2 movementInput;
+    private InputAction moveInputAction;
+    private InputAction shootInputAction;
+    private bool isPaused = true;
+
+    #endregion
+
+    #region Unity Methods
 
     private void Awake()
     {
-        moveAction = new InputAction(type: InputActionType.Value, binding: "<Gamepad>/leftStick");
-        moveAction
+        InitializeInputActions();
+    }
+
+    private void OnEnable()
+    {
+        moveInputAction.Enable();
+        shootInputAction.Enable();
+        shootInputAction.performed += HandleShoot;
+    }
+
+    private void OnDisable()
+    {
+        moveInputAction.Disable();
+        shootInputAction.Disable();
+        shootInputAction.performed -= HandleShoot;
+    }
+
+    private void Start()
+    {
+        CacheReferences();
+        SetupRigidbody();
+        SetupCollider();
+        ValidateBulletPrefab();
+        Pause();
+    }
+
+    private void Update()
+    {
+        if (isPaused)
+            return;
+
+        HandleMovement();
+        ClampPlayerPosition();
+    }
+
+    #endregion
+
+    #region Initialization
+
+    /// <summary>
+    /// Sets up input actions for movement and shooting.
+    /// </summary>
+    private void InitializeInputActions()
+    {
+        moveInputAction = new InputAction(
+            type: InputActionType.Value,
+            binding: "<Gamepad>/leftStick"
+        );
+        moveInputAction
             .AddCompositeBinding("2DVector")
             .With("Left", "<Keyboard>/a")
             .With("Right", "<Keyboard>/d")
             .With("Left", "<Keyboard>/leftArrow")
             .With("Right", "<Keyboard>/rightArrow");
 
-        shootAction = new InputAction(type: InputActionType.Button, binding: "<Keyboard>/space");
-        shootAction.AddBinding("<Gamepad>/buttonSouth");
+        shootInputAction = new InputAction(
+            type: InputActionType.Button,
+            binding: "<Keyboard>/space"
+        );
+        shootInputAction.AddBinding("<Gamepad>/buttonSouth");
     }
 
-    private void OnEnable()
+    /// <summary>
+    /// Caches references to required components and managers.
+    /// </summary>
+    private void CacheReferences()
     {
-        moveAction.Enable();
-        shootAction.Enable();
-        shootAction.performed += OnShoot;
+        gameManager = FindAnyObjectByType<GameManager>();
+        rb2D = GetComponent<Rigidbody2D>();
     }
 
-    private void OnDisable()
+    /// <summary>
+    /// Configures the Rigidbody2D component.
+    /// </summary>
+    private void SetupRigidbody()
     {
-        moveAction.Disable();
-        shootAction.Disable();
-        shootAction.performed -= OnShoot;
+        rb2D.gravityScale = 0;
+        rb2D.freezeRotation = true;
     }
 
-    private void Start()
+    /// <summary>
+    /// Configures the BoxCollider2D component.
+    /// </summary>
+    private void SetupCollider()
     {
-        manager = FindAnyObjectByType<GameManager>();
+        var boxCollider = GetComponent<BoxCollider2D>();
+        boxCollider.autoTiling = true;
+    }
 
-        rb2d = gameObject.AddComponent<Rigidbody2D>();
-        rb2d.gravityScale = 0;
-        rb2d.freezeRotation = true;
-
-        var bc2d = gameObject.AddComponent<BoxCollider2D>();
-        bc2d.autoTiling = true;
-
+    /// <summary>
+    /// Validates that the bullet prefab is assigned.
+    /// </summary>
+    private void ValidateBulletPrefab()
+    {
         if (bulletPrefab == null)
-            Debug.LogError("Bullet Prefab is not assigned!");
-
-        Pause();
+            Debug.LogError("Bullet Prefab is not assigned!", this);
     }
 
-    private void Update()
+    #endregion
+
+    #region Movement
+
+    /// <summary>
+    /// Handles player movement based on input.
+    /// </summary>
+    private void HandleMovement()
     {
-        if (paused)
-            return;
-
-        moveInput = moveAction.ReadValue<Vector2>();
-        rb2d.linearVelocity = moveInput * speed;
-
-        Vector3 pos = transform.position;
-        pos.x = Mathf.Clamp(pos.x, minX, maxX);
-        transform.position = pos;
+        movementInput = moveInputAction.ReadValue<Vector2>();
+        rb2D.linearVelocity = movementInput * movementSpeed;
     }
 
-    private void OnShoot(InputAction.CallbackContext context)
+    /// <summary>
+    /// Clamps the player's position within the defined X boundaries.
+    /// </summary>
+    private void ClampPlayerPosition()
     {
-        if (paused)
+        Vector3 position = transform.position;
+        position.x = Mathf.Clamp(position.x, minX, maxX);
+        transform.position = position;
+    }
+
+    #endregion
+
+    #region Shooting
+
+    /// <summary>
+    /// Handles shooting input and bullet instantiation.
+    /// </summary>
+    /// <param name="context">Input callback context.</param>
+    private void HandleShoot(InputAction.CallbackContext context)
+    {
+        if (isPaused)
             return;
 
         if (bulletPrefab != null && bulletSpawnPoint != null)
         {
-            GameObject bullet = Instantiate(
+            GameObject bulletInstance = Instantiate(
                 bulletPrefab,
                 bulletSpawnPoint.position,
                 Quaternion.identity
             );
-            if (bullet.TryGetComponent(out Bullet bulletComponent))
+
+            if (bulletInstance.TryGetComponent(out Bullet bulletComponent))
             {
-                bulletComponent.moveSpeed = bulletSpeed;
+                bulletComponent.moveSpeed = bulletMoveSpeed;
                 bulletComponent.owner = Bullet.BulletOwner.Player;
                 bulletComponent.BulletStyle = 0;
             }
         }
     }
+
+    #endregion
+
+    #region Pause Control
+
+    /// <summary>
+    /// Unpauses the player, enabling movement and shooting.
+    /// </summary>
+    public void UnPause() => isPaused = false;
+
+    /// <summary>
+    /// Pauses the player, disabling movement and shooting.
+    /// </summary>
+    public void Pause() => isPaused = true;
+
+    #endregion
 }

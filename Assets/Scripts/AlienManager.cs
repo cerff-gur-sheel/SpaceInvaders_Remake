@@ -76,9 +76,9 @@ public class AlienManager : MonoBehaviour
     private bool IsPaused => gameManager != null && gameManager.IsGamePaused;
     #endregion
 
-    #region Unity Methods
+    #region Public Methods
 
-    private void Awake()
+    public void StartInvaderManager()
     {
         gameManager = FindAnyObjectByType<GameManager>();
         StartCoroutine(SpawnFormationCoroutine());
