@@ -97,15 +97,15 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// Updates the score UI elements.
     /// </summary>
-    private void UpdateScoreUI()
+    private void UpdateScoreUI(int score = 0)
     {
-        if (primaryScoreText != null)
+        if (primaryScoreText != null && score == 0)
             primaryScoreText.text = currentScore.ToString();
 
-        if (secondaryScoreText != null)
+        if (secondaryScoreText != null && score == 1)
             secondaryScoreText.text = currentScore.ToString();
 
-        if (totalScoreText != null)
+        if (totalScoreText != null && score >= 2)
             totalScoreText.text = currentScore.ToString();
     }
 
