@@ -109,7 +109,11 @@ MonoBehaviour:
   redVisual: {fileID: 8042618170043273383}
   greenVisual: {fileID: 3605564297500255854}
   animationSprites: []
-  spriteAnimationInterval: 0.1
+  playerExplosionPrefab: {fileID: 2372111796406457970, guid: 28b5005ef5cd28ad6aa3e21aed7f58d4, type: 3}
+  bulletExplosionPrefab: {fileID: 2132398900366083478, guid: ce3e8175eafe90aa0b8e8417ae2c9f5a, type: 3}
+  AlienExplosionPrefab:
+  - {fileID: 3764309840752012954, guid: 06d2c8ed6bd0e2eda9d50ec852eddf19, type: 3}
+  - {fileID: 4754851967738402752, guid: fc8294d330945355d9979ff64308caa6, type: 3}
   owner: 0
 --- !u!95 &4943967388258730491
 Animator:
@@ -285,7 +289,10 @@ MonoBehaviour:
   redVisual: {fileID: 0}
   greenVisual: {fileID: 0}
   animationSprites: []
-  spriteAnimationInterval: 0.1
+  playerExplosionPrefab: {fileID: 0}
+  bulletExplosionPrefab: {fileID: 0}
+  AlienExplosionPrefab:
+  - {fileID: 0}
   owner: 0
 --- !u!95 &2925261365200822842
 Animator:
@@ -415,7 +422,10 @@ MonoBehaviour:
   redVisual: {fileID: 0}
   greenVisual: {fileID: 0}
   animationSprites: []
-  spriteAnimationInterval: 0.1
+  playerExplosionPrefab: {fileID: 0}
+  bulletExplosionPrefab: {fileID: 0}
+  AlienExplosionPrefab:
+  - {fileID: 0}
   owner: 0
 --- !u!95 &276273438646213338
 Animator:

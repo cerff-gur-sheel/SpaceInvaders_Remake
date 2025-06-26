@@ -29,6 +29,17 @@ public class Bullet : MonoBehaviour
     [SerializeField]
     private Sprite[] animationSprites;
 
+    [Header("Explosions")]
+    [SerializeField]
+    private GameObject playerExplosionPrefab;
+
+    [SerializeField]
+    private GameObject bulletExplosionPrefab;
+
+    [SerializeField]
+    [Tooltip("0 = normal, 1 = ufo")]
+    private GameObject[] AlienExplosionPrefab;
+
     #endregion
 
     #region Bullet Type
@@ -141,16 +152,24 @@ public class Bullet : MonoBehaviour
             if (IsGamePaused)
             {
                 _rigidbody2D.linearVelocity = Vector2.zero;
-                _animator.speed = 0;
-                foreach (var childAnimator in childAnimators)
-                    childAnimator.speed = 0;
+                if (_animator != null)
+                    _animator.speed = 0;
+                if (childAnimators != null)
+                {
+                    foreach (var childAnimator in childAnimators)
+                        childAnimator.speed = 0;
+                }
             }
             else
             {
                 _rigidbody2D.linearVelocity = Vector2.up * moveSpeed;
-                _animator.speed = 1;
-                foreach (var childAnimator in childAnimators)
-                    childAnimator.speed = 1;
+                if (_animator != null)
+                    _animator.speed = 1;
+                if (childAnimators != null)
+                {
+                    foreach (var childAnimator in childAnimators)
+                        childAnimator.speed = 1;
+                }
             }
 
             _wasPaused = IsGamePaused;
@@ -169,15 +188,6 @@ public class Bullet : MonoBehaviour
     }
 
     #endregion
-
-    [SerializeField]
-    private GameObject playerExplosionPrefab;
-
-    [SerializeField]
-    private GameObject bulletExplosionPrefab;
-
-    [SerializeField]
-    private GameObject AlienExplosionPrefab;
 
     #region Collision
 
@@ -204,11 +214,14 @@ public class Bullet : MonoBehaviour
 
             case AlienTag:
                 if (AlienExplosionPrefab != null)
+                {
+                    var useUFO = other.GetComponent<Alien>().useRandomPoints == true;
                     Instantiate(
-                        AlienExplosionPrefab,
+                        AlienExplosionPrefab[useUFO == true ? 1 : 0],
                         other.transform.position,
                         other.transform.rotation
                     );
+                }
                 break;
 
             case BulletTag:

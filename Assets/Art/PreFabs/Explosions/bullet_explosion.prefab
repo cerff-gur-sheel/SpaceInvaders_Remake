@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 5443943075289666608}
   - component: {fileID: 42511808820280098}
   m_Layer: 0
-  m_Name: BulletExplosion
+  m_Name: bullet_explosion
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -101,3 +101,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   destroyDelay: 0.25
+  pauseWhileAwait: 1
+  type: 1

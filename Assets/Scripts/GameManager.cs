@@ -64,6 +64,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private void StartGame()
     {
+        TogglePauseGame(true);
         SpawnPlayer();
         if (alienManager != null)
             alienManager.StartInvaderManager();
@@ -72,10 +73,17 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// Instantiates the player at the designated spawn point.
     /// </summary>
-    private void SpawnPlayer()
+    public void SpawnPlayer()
     {
         if (playerPrefab != null && playerSpawnPoint != null)
-            Instantiate(playerPrefab, playerSpawnPoint.position, playerSpawnPoint.rotation);
+        {
+            Instantiate(
+                playerPrefab,
+                playerSpawnPoint.transform.position,
+                playerSpawnPoint.rotation,
+                playerSpawnPoint
+            );
+        }
         else
             Debug.LogWarning("Player prefab or spawn point not assigned in GameManager.");
     }
@@ -118,5 +126,6 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void TogglePauseGame() => IsGamePaused = !IsGamePaused;
 
+    public void TogglePauseGame(bool pause) => IsGamePaused = pause;
     #endregion
 }

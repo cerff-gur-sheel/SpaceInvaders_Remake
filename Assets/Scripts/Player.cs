@@ -45,7 +45,7 @@ public class Player : MonoBehaviour
     private Vector2 movementInput;
     private InputAction moveInputAction;
     private InputAction shootInputAction;
-    private bool isPaused = true;
+    private bool IsPaused => gameManager != null && gameManager.IsGamePaused;
 
     #endregion
 
@@ -76,12 +76,11 @@ public class Player : MonoBehaviour
         SetupRigidbody();
         SetupCollider();
         ValidateBulletPrefab();
-        Pause();
     }
 
     private void Update()
     {
-        if (isPaused)
+        if (IsPaused)
             return;
 
         HandleMovement();
@@ -184,7 +183,7 @@ public class Player : MonoBehaviour
     /// <param name="context">Input callback context.</param>
     private void HandleShoot(InputAction.CallbackContext context)
     {
-        if (isPaused)
+        if (IsPaused)
             return;
 
         if (bulletPrefab != null && bulletSpawnPoint != null)
@@ -203,20 +202,6 @@ public class Player : MonoBehaviour
             }
         }
     }
-
-    #endregion
-
-    #region Pause Control
-
-    /// <summary>
-    /// Unpauses the player, enabling movement and shooting.
-    /// </summary>
-    public void UnPause() => isPaused = false;
-
-    /// <summary>
-    /// Pauses the player, disabling movement and shooting.
-    /// </summary>
-    public void Pause() => isPaused = true;
 
     #endregion
 }

@@ -107,12 +107,10 @@ public class AlienManager : MonoBehaviour
                 yield return new WaitForSeconds(spawnDelayMs / 1000f);
             }
         }
-        FindAnyObjectByType<Player>().UnPause();
         StartCoroutine(MoveFormationCoroutine());
         StartAlienShootCoroutines();
         StartCoroutine(UfoSpawnCoroutine());
-
-        FindAnyObjectByType<Player>().UnPause();
+        gameManager.TogglePauseGame(false);
     }
 
     private IEnumerator MoveFormationCoroutine()
