@@ -2,13 +2,13 @@ using UnityEngine;
 
 public class SelfDestroy : MonoBehaviour
 {
+    #region Input Fields
+
     [SerializeField]
     private float destroyDelay = 0.5f;
 
     [SerializeField]
     private bool pauseWhileAwait = false;
-
-    private GameManager manager;
 
     [SerializeField]
     private Type type;
@@ -20,6 +20,16 @@ public class SelfDestroy : MonoBehaviour
         bullet,
         alien,
     };
+
+    #endregion
+
+    #region Private Proprieties
+
+    private GameManager manager;
+
+    #endregion
+
+    #region Unity Methods
 
     private void Start()
     {
@@ -33,8 +43,6 @@ public class SelfDestroy : MonoBehaviour
 
         Destroy(gameObject, destroyDelay);
     }
-
-    public void DestroySelf() => Destroy(gameObject);
 
     private void OnDestroy()
     {
@@ -51,4 +59,12 @@ public class SelfDestroy : MonoBehaviour
                 break;
         }
     }
+
+    #endregion
+
+    #region Public Methods
+
+    public void DestroySelf() => Destroy(gameObject);
+
+    #endregion
 }
