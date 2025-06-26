@@ -101,5 +101,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   destroyDelay: 0.25
-  pauseWhileAwait: 1
+  pauseWhileAwait: 0
   type: 1

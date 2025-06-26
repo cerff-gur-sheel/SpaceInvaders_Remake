@@ -1,3 +1,4 @@
+using UnityEditor.EditorTools;
 using UnityEngine;
 
 /// <summary>
@@ -13,7 +14,7 @@ public class Bullet : MonoBehaviour
 
     [Tooltip("Maximum distance bullet can travel before being destroyed.")]
     [SerializeField]
-    private float maxTravelDistance = 10f;
+    private float maxTravelDistance = 8f;
 
     [Header("Bullet Visuals")]
     [Tooltip("GameObject for red bullet visual.")]
@@ -34,7 +35,8 @@ public class Bullet : MonoBehaviour
     private GameObject playerExplosionPrefab;
 
     [SerializeField]
-    private GameObject bulletExplosionPrefab;
+    [Tooltip("0 = bullet/bullet, 1 = limit area")]
+    private GameObject[] bulletExplosionPrefab;
 
     [SerializeField]
     [Tooltip("0 = normal, 1 = ufo")]
@@ -227,11 +229,20 @@ public class Bullet : MonoBehaviour
             case BulletTag:
                 if (bulletExplosionPrefab != null)
                     Instantiate(
-                        bulletExplosionPrefab,
+                        bulletExplosionPrefab[0],
                         other.transform.position,
                         other.transform.rotation
                     );
                 break;
+
+            case "LimitArea":
+                if (transform.position.y > 0)
+                {
+                    Instantiate(bulletExplosionPrefab[1], transform.position, transform.rotation);
+                }
+
+                Destroy(gameObject);
+                return;
 
             default:
                 break;
