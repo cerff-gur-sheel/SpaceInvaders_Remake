@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 /// <summary>
 /// Manages the overall game state, including player instantiation, score, and pause functionality.
@@ -30,12 +31,23 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     private TextMeshProUGUI totalScoreText;
 
+    [Header("Life Manager")]
+    [SerializeField]
+    private Image[] lifeImages;
+
+    [SerializeField]
+    private TextMeshProUGUI lifeText;
+
     [Header("Alien Manager")]
     [Tooltip("Reference to the AlienManager responsible for managing invaders.")]
     [SerializeField]
     private AlienManager alienManager;
 
     private int currentScore = 0;
+
+    private int[] playerLife = new int[] { 3, 3 };
+
+    private int currentPlayer = 0;
 
     #endregion
 
@@ -86,6 +98,33 @@ public class GameManager : MonoBehaviour
         }
         else
             Debug.LogWarning("Player prefab or spawn point not assigned in GameManager.");
+    }
+
+    #endregion
+
+    #region Life Management
+    public void ChangeLifePoints()
+    {
+        playerLife[currentPlayer]--;
+        if (playerLife[currentPlayer] <= 0)
+        {
+            // TODO: game over
+        }
+
+        UpdateLifeUI();
+    }
+
+    private void UpdateLifeUI()
+    {
+        var pl = playerLife[currentPlayer];
+        lifeText.text = pl.ToString();
+        for (var i = 0; i < lifeImages.Length; i++)
+        {
+            if (i < pl - 1)
+                lifeImages[i].color = Color.green;
+            else
+                lifeImages[i].color = Color.clear;
+        }
     }
 
     #endregion

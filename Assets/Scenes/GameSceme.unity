@@ -3806,6 +3806,10 @@ MonoBehaviour:
   primaryScoreText: {fileID: 771380641}
   secondaryScoreText: {fileID: 345505528}
   totalScoreText: {fileID: 607453578}
+  lifeImages:
+  - {fileID: 2131159363}
+  - {fileID: 1487450064}
+  lifeText: {fileID: 1804179392}
   alienManager: {fileID: 412504959}
 --- !u!4 &369820968
 Transform:
@@ -3823,7 +3827,6 @@ Transform:
   - {fileID: 846501797}
   - {fileID: 1163027022}
   - {fileID: 739145853}
-  - {fileID: 1283794359}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &379579066
@@ -9536,6 +9539,7 @@ Transform:
   - {fileID: 761350420}
   - {fileID: 1331065481}
   - {fileID: 1373837268}
+  - {fileID: 1283794359}
   m_Father: {fileID: 369820968}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &846879500
@@ -14110,7 +14114,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 67213463}
-  m_Father: {fileID: 369820968}
+  m_Father: {fileID: 846501797}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}

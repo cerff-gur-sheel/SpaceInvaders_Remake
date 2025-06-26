@@ -76,6 +76,7 @@ public class Player : MonoBehaviour
         SetupRigidbody();
         SetupCollider();
         ValidateBulletPrefab();
+        gameManager = FindAnyObjectByType<GameManager>();
     }
 
     private void Update()
@@ -86,6 +87,8 @@ public class Player : MonoBehaviour
         HandleMovement();
         ClampPlayerPosition();
     }
+
+    private void OnDestroy() => gameManager.ChangeLifePoints();
 
     #endregion
 
