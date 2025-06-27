@@ -211,11 +211,24 @@ public class GameManager : MonoBehaviour
         UpdateScoreUI();
     }
 
-    private void UpdateScoreUI()
+    private void UpdateScoreUI(int opt = 0)
     {
-        primaryScoreUI.text = currentScore.ToString();
-        secondaryScoreUI.text = currentScore.ToString();
-        totalScoreUI.text = currentScore.ToString();
+        switch (opt)
+        {
+            case 0:
+                primaryScoreUI.text = currentScore.ToString();
+                break;
+
+            case 1:
+                secondaryScoreUI.text = currentScore.ToString();
+                break;
+
+            default:
+                totalScoreUI.text = currentScore.ToString();
+                secondaryScoreUI.text = currentScore.ToString();
+                primaryScoreUI.text = currentScore.ToString();
+                break;
+        }
     }
 
     #endregion
