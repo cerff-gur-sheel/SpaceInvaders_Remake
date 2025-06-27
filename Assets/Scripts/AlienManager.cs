@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Linq;
 using UnityEngine;
 
 /// <summary>
@@ -48,7 +49,7 @@ public class AlienManager : MonoBehaviour
     private float bulletSpeed = 6f;
 
     [SerializeField]
-    private int simultaneousShots = 3;
+    private float shootInterval = 0.5f;
 
     [Header("UFO Settings")]
     [SerializeField]
@@ -66,22 +67,50 @@ public class AlienManager : MonoBehaviour
     private bool shouldChangeDirection = false;
     private bool bunkersActive = true;
     private bool isGameRunning = true;
-
     private GameObject activeUfo = null;
-
     private Coroutine[] ShotsCoroutine;
-
     private GameManager gameManager;
-
     private bool IsPaused => gameManager != null && gameManager.IsGamePaused;
+    private Coroutine moveFormationCoroutine;
+    private Coroutine alienShootCoroutine;
+    private Coroutine ufoSpawnCoroutine;
+    private Coroutine moveUfoCoroutine;
+    private Transform instancesParent;
+
     #endregion
 
     #region Public Methods
 
-    public void StartInvaderManager()
+    public void StartInvaderManager(GameManager gameManager)
     {
-        gameManager = FindAnyObjectByType<GameManager>();
+        instancesParent = Instantiate(
+            new GameObject("InvaderManagerInstancesParent"),
+            transform.position,
+            transform.rotation,
+            transform
+        ).transform;
+        this.gameManager = gameManager;
+        isGameRunning = true;
         StartCoroutine(SpawnFormationCoroutine());
+    }
+
+    public void StopAll()
+    {
+        if (moveFormationCoroutine != null)
+            StopCoroutine(moveFormationCoroutine);
+
+        if (alienShootCoroutine != null)
+            StopCoroutine(alienShootCoroutine);
+
+        if (ufoSpawnCoroutine != null)
+            StopCoroutine(ufoSpawnCoroutine);
+
+        if (moveUfoCoroutine != null)
+            StopCoroutine(moveUfoCoroutine);
+
+        ShotsCoroutine?.Where(c => c != null).ToList().ForEach(StopCoroutine);
+
+        Destroy(instancesParent.gameObject);
     }
 
     #endregion
@@ -102,14 +131,14 @@ public class AlienManager : MonoBehaviour
                     prefabToUse,
                     position,
                     Quaternion.identity,
-                    transform
+                    instancesParent
                 );
                 yield return new WaitForSeconds(spawnDelayMs / 1000f);
             }
         }
-        StartCoroutine(MoveFormationCoroutine());
-        StartAlienShootCoroutines();
-        StartCoroutine(UfoSpawnCoroutine());
+        moveFormationCoroutine = StartCoroutine(MoveFormationCoroutine());
+        alienShootCoroutine = StartCoroutine(AlienShootCoroutine());
+        ufoSpawnCoroutine = StartCoroutine(UfoSpawnCoroutine());
         gameManager.TogglePauseGame(false);
     }
 
@@ -150,7 +179,7 @@ public class AlienManager : MonoBehaviour
                     alien.transform.Translate(new Vector3(moveDistanceX * directionX, moveY));
                     alienComponent.AdvanceAnimationFrame();
 
-                    if (bunkersActive && alien.transform.position.y <= -4)
+                    if (bunkersActive && alien.transform.position.y <= -3)
                     {
                         Destroy(GameObject.Find("Bunkers"));
                         bunkersActive = false;
@@ -177,23 +206,9 @@ public class AlienManager : MonoBehaviour
 
     #region Alien Shooting
 
-    private void StartAlienShootCoroutines()
-    {
-        if (ShotsCoroutine != null)
-        {
-            foreach (var coroutine in ShotsCoroutine)
-                if (coroutine != null)
-                    StopCoroutine(coroutine);
-        }
-
-        ShotsCoroutine = new Coroutine[simultaneousShots];
-        for (int i = 0; i < simultaneousShots; i++)
-            ShotsCoroutine[i] = StartCoroutine(AlienShootCoroutine());
-    }
-
     private IEnumerator AlienShootCoroutine()
     {
-        yield return new WaitForSeconds(Random.Range(0.5f, 2f));
+        yield return new WaitForSeconds(shootInterval);
         if (!isGameRunning || IsPaused)
             yield return new WaitUntil(() => IsPaused == false);
 
@@ -229,7 +244,7 @@ public class AlienManager : MonoBehaviour
             GameObject shooter = aliveAliens[Random.Range(0, aliveAliens.Count)];
             Vector3 spawnPos = shooter.transform.position + Vector3.down * 0.5f;
             SpawnAlienBullet(spawnPos);
-            StartCoroutine(AlienShootCoroutine());
+            alienShootCoroutine = StartCoroutine(AlienShootCoroutine());
         }
     }
 
@@ -237,7 +252,12 @@ public class AlienManager : MonoBehaviour
     {
         if (bulletPrefab != null)
         {
-            GameObject bullet = Instantiate(bulletPrefab, spawnPosition, Quaternion.identity);
+            GameObject bullet = Instantiate(
+                bulletPrefab,
+                spawnPosition,
+                Quaternion.identity,
+                instancesParent
+            );
             if (bullet.TryGetComponent(out Bullet bulletComponent))
             {
                 bulletComponent.moveSpeed = -Mathf.Abs(bulletSpeed);
@@ -265,13 +285,18 @@ public class AlienManager : MonoBehaviour
             {
                 bool fromLeft = Random.value < 0.5f;
                 Vector2 spawnPos = fromLeft
-                    ? new Vector2(minX - 1f, 1.25f)
-                    : new Vector2(maxX + 1f, 1.25f);
+                    ? new Vector2(minX - 1f, 1.7f)
+                    : new Vector2(maxX + 1f, 1.7f);
                 int dir = fromLeft ? 1 : -1;
 
-                var ufo = Instantiate(alienPrefabs[5], spawnPos, Quaternion.identity);
+                var ufo = Instantiate(
+                    alienPrefabs[5],
+                    spawnPos,
+                    Quaternion.identity,
+                    instancesParent
+                );
                 activeUfo = ufo;
-                StartCoroutine(MoveUfoCoroutine(ufo, dir));
+                moveUfoCoroutine = StartCoroutine(MoveUfoCoroutine(ufo, dir));
             }
         }
     }

@@ -54,9 +54,6 @@ public class SelfDestroy : MonoBehaviour
             case Type.player:
                 manager.SpawnPlayer();
                 break;
-            default:
-                Debug.Log("not implemented");
-                break;
         }
     }
 

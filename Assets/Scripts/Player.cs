@@ -46,6 +46,7 @@ public class Player : MonoBehaviour
     private InputAction moveInputAction;
     private InputAction shootInputAction;
     private bool IsPaused => gameManager != null && gameManager.IsGamePaused;
+    private Transform bulletTransform;
 
     #endregion
 
@@ -53,6 +54,14 @@ public class Player : MonoBehaviour
 
     private void Awake()
     {
+        var newBulletTransform = Instantiate(
+            new GameObject("Player Bullet Transform"),
+            Vector2.zero,
+            transform.rotation,
+            FindAnyObjectByType<GameManager>().transform
+        );
+        bulletTransform = newBulletTransform.transform;
+
         InitializeInputActions();
     }
 
@@ -194,7 +203,8 @@ public class Player : MonoBehaviour
             GameObject bulletInstance = Instantiate(
                 bulletPrefab,
                 bulletSpawnPoint.position,
-                Quaternion.identity
+                Quaternion.identity,
+                bulletTransform
             );
 
             if (bulletInstance.TryGetComponent(out Bullet bulletComponent))

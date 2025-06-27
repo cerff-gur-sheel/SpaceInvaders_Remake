@@ -51,9 +51,6 @@ public class Alien : MonoBehaviour
 
     private void Start()
     {
-        var boxCollider = gameObject.AddComponent<BoxCollider2D>();
-        boxCollider.autoTiling = true;
-
         SetSprite(_currentAnimationFrame);
         manager = FindAnyObjectByType<GameManager>();
     }

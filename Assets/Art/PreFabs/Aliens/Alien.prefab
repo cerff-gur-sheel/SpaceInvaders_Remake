@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 2099038486126940143}
   - component: {fileID: 3333936329786386281}
   - component: {fileID: 3960806945246510793}
+  - component: {fileID: 550800423767396299}
   m_Layer: 0
   m_Name: Alien
   m_TagString: Alien
@@ -85,7 +86,7 @@ SpriteRenderer:
   m_Size: {x: 0.5, y: 0.5}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!114 &3960806945246510793
@@ -100,4 +101,53 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1810973290c16dfe6939883e8ee972bf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  alienSprites: []
+  points: 100
+  useRandomPoints: 0
+  possiblePoints: 3200000064000000960000002c010000
+  animationSprites: []
+--- !u!61 &550800423767396299
+BoxCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4605730969100931694}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 0, y: 0}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0, y: 0}
+    oldSize: {x: 0, y: 0}
+    newSize: {x: 0, y: 0}
+    adaptiveTilingThreshold: 0
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  m_Size: {x: 0.3009947, y: 0.28219703}
+  m_EdgeRadius: 0

@@ -1,4 +1,7 @@
+using System.Collections.Generic;
+using System.Linq;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -43,11 +46,20 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     private AlienManager alienManager;
 
+    [Header("Bunkers")]
+    [SerializeField]
+    private GameObject bunkerPrefab;
+
+    [SerializeField]
+    private Transform[] bunkerSpawnPoints;
+
     private int currentScore = 0;
 
     private int[] playerLife = new int[] { 3, 3 };
 
     private int currentPlayer = 0;
+
+    private List<GameObject> bunkers;
 
     #endregion
 
@@ -57,6 +69,8 @@ public class GameManager : MonoBehaviour
     /// Indicates whether the game is currently paused.
     /// </summary>
     public bool IsGamePaused { get; private set; } = false;
+
+    private bool isGameRunning = false;
 
     #endregion
 
@@ -74,12 +88,33 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// Initializes the game by spawning the player and starting the alien manager.
     /// </summary>
-    private void StartGame()
+    public void StartGame()
     {
+        if (isGameRunning)
+            StopGame();
+
         TogglePauseGame(true);
+        isGameRunning = true;
+
+        SpawnBunkers();
         SpawnPlayer();
-        if (alienManager != null)
-            alienManager.StartInvaderManager();
+        alienManager.StartInvaderManager(this);
+    }
+
+    public void StopGame()
+    {
+        isGameRunning = false;
+
+        // stop alien manager objects
+        alienManager.StopAll();
+
+        // stop bunkers
+        bunkers.Where(b => b != null).ToList().ForEach(Destroy);
+
+        // stop player
+        var player = FindAnyObjectByType<Player>();
+        player.gameObject.SetActive(false);
+        Destroy(player.gameObject);
     }
 
     /// <summary>
@@ -100,15 +135,30 @@ public class GameManager : MonoBehaviour
             Debug.LogWarning("Player prefab or spawn point not assigned in GameManager.");
     }
 
+    private void SpawnBunkers()
+    {
+        bunkers = new List<GameObject>();
+
+        foreach (var trans in bunkerSpawnPoints)
+        {
+            var bunker = Instantiate(bunkerPrefab, trans.position, trans.rotation, trans);
+            bunkers.Add(bunker);
+        }
+    }
+
+    public void WinTheGame() { }
     #endregion
 
     #region Life Management
     public void ChangeLifePoints()
     {
+        if (!isGameRunning)
+            return;
         playerLife[currentPlayer]--;
         if (playerLife[currentPlayer] <= 0)
         {
             // TODO: game over
+            isGameRunning = false;
         }
 
         UpdateLifeUI();
@@ -137,6 +187,8 @@ public class GameManager : MonoBehaviour
     /// <param name="points">The number of points to add.</param>
     public void AddPoints(int points)
     {
+        if (!isGameRunning)
+            return;
         currentScore += points;
         UpdateScoreUI();
     }
@@ -162,7 +214,7 @@ public class GameManager : MonoBehaviour
 
     /// <summary>
     /// Toggles the game's paused state.
-    /// </summary>
+    /// /// </summary>
     public void TogglePauseGame() => IsGamePaused = !IsGamePaused;
 
     public void TogglePauseGame(bool pause) => IsGamePaused = pause;
