@@ -97,7 +97,11 @@ public class Player : MonoBehaviour
         ClampPlayerPosition();
     }
 
-    private void OnDestroy() => gameManager.ApplyLifeDamage();
+    private void OnDestroy()
+    {
+        Destroy(bulletTransform.gameObject);
+        gameManager.ApplyLifeDamage();
+    }
 
     #endregion
 

@@ -1839,7 +1839,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 112, y: -6.83}
+  m_AnchoredPosition: {x: 112, y: -6.829998}
   m_SizeDelta: {x: 200, y: 13.66}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &114443440
@@ -4535,6 +4535,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 225cca247231cb9c486606d9000ace90, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  menuCanvas: {fileID: 1292089389}
+  theGameRootObject: {fileID: 846501796}
   playerPrefab: {fileID: 4349380714398982250, guid: 1dce90efc5c94c00dabfcd07a2665641, type: 3}
   playerSpawnPoint: {fileID: 1373837268}
   primaryScoreUI: {fileID: 771380641}
@@ -10053,7 +10055,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &846501797
 Transform:
   m_ObjectHideFlags: 0
@@ -19633,7 +19635,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: -6.64, y: 0}
+  m_AnchoredPosition: {x: -6.6399994, y: 0}
   m_SizeDelta: {x: 40, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1613564760

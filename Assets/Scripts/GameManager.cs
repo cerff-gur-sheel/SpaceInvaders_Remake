@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 /// <summary>
@@ -11,6 +12,13 @@ using UnityEngine.UI;
 public class GameManager : MonoBehaviour
 {
     #region === Serialized Fields ===
+
+    [Header("Screens Objects")]
+    [SerializeField]
+    private GameObject menuCanvas;
+
+    [SerializeField]
+    private GameObject theGameRootObject;
 
     [Header("Player Configuration")]
     [Tooltip("Prefab of the player to instantiate at game start.")]
@@ -82,15 +90,23 @@ public class GameManager : MonoBehaviour
 
     private void Awake()
     {
-        StartGame();
+        menuCanvas.SetActive(true);
     }
 
+    void Update()
+    {
+        if (menuCanvas.activeSelf && Keyboard.current.anyKey.wasPressedThisFrame)
+            StartGame();
+    }
     #endregion
 
     #region === Game Control ===
 
     private void StartGame()
     {
+        menuCanvas.SetActive(false);
+        theGameRootObject.SetActive(true);
+
         if (isGameRunning)
             StopGame();
 
@@ -119,6 +135,7 @@ public class GameManager : MonoBehaviour
 
     public void WinGame()
     {
+        UpdateScoreUI(3);
         StartGame();
     }
 
@@ -126,8 +143,14 @@ public class GameManager : MonoBehaviour
     {
         gameOverUI.gameObject.SetActive(true);
         await Task.Delay(gameOverDelaySeconds * 1000);
+
         StopGame();
-        // TODO: Load Main Menu
+
+        await Task.Delay(1000);
+
+        gameOverUI.gameObject.SetActive(false);
+        theGameRootObject.SetActive(false);
+        menuCanvas.SetActive(true);
     }
 
     #endregion
@@ -137,7 +160,10 @@ public class GameManager : MonoBehaviour
     public void SpawnPlayer()
     {
         if (!isGameRunning)
+        {
+            PauseGame(true);
             return;
+        }
 
         if (playerPrefab == null || playerSpawnPoint == null)
         {
