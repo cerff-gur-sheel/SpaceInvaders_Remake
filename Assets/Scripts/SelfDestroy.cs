@@ -39,7 +39,7 @@ public class SelfDestroy : MonoBehaviour
             return;
 
         if (pauseWhileAwait)
-            manager.TogglePauseGame(true);
+            manager.PauseGame(true);
 
         Destroy(gameObject, destroyDelay);
     }
@@ -47,7 +47,7 @@ public class SelfDestroy : MonoBehaviour
     private void OnDestroy()
     {
         if (pauseWhileAwait)
-            manager.TogglePauseGame(false);
+            manager.PauseGame(false);
 
         switch (type)
         {

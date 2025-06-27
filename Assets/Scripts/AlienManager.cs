@@ -139,7 +139,7 @@ public class AlienManager : MonoBehaviour
         moveFormationCoroutine = StartCoroutine(MoveFormationCoroutine());
         alienShootCoroutine = StartCoroutine(AlienShootCoroutine());
         ufoSpawnCoroutine = StartCoroutine(UfoSpawnCoroutine());
-        gameManager.TogglePauseGame(false);
+        gameManager.PauseGame(false);
     }
 
     private IEnumerator MoveFormationCoroutine()
@@ -198,6 +198,7 @@ public class AlienManager : MonoBehaviour
             if (!foundAlive)
             {
                 isGameRunning = false;
+                gameManager.WinGame();
                 yield break;
             }
         }

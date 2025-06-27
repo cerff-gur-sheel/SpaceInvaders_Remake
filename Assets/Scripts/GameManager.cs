@@ -1,80 +1,84 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Manages the overall game state, including player instantiation, score, and pause functionality.
+/// Controls the game's lifecycle, including player, score, pause state, and environment setup.
 /// </summary>
 public class GameManager : MonoBehaviour
 {
-    #region Fields
+    #region === Serialized Fields ===
 
-    [Header("Player Settings")]
-    [Tooltip("Prefab of the player to instantiate at the start of the game.")]
+    [Header("Player Configuration")]
+    [Tooltip("Prefab of the player to instantiate at game start.")]
     [SerializeField]
     private GameObject playerPrefab;
 
-    [Tooltip("Transform where the player will be instantiated.")]
+    [Tooltip("Location where the player will spawn.")]
     [SerializeField]
     private Transform playerSpawnPoint;
 
     [Header("Score UI")]
-    [Tooltip("UI Text for displaying the primary score.")]
     [SerializeField]
-    private TextMeshProUGUI primaryScoreText;
-
-    [Tooltip("UI Text for displaying the secondary score (if used).")]
-    [SerializeField]
-    private TextMeshProUGUI secondaryScoreText;
-
-    [Tooltip("UI Text for displaying the total score.")]
-    [SerializeField]
-    private TextMeshProUGUI totalScoreText;
-
-    [Header("Life Manager")]
-    [SerializeField]
-    private Image[] lifeImages;
+    private TextMeshProUGUI primaryScoreUI;
 
     [SerializeField]
-    private TextMeshProUGUI lifeText;
+    private TextMeshProUGUI secondaryScoreUI;
 
-    [Header("Alien Manager")]
-    [Tooltip("Reference to the AlienManager responsible for managing invaders.")]
+    [SerializeField]
+    private TextMeshProUGUI totalScoreUI;
+
+    [Header("Life UI")]
+    [SerializeField]
+    private Image[] lifeIndicators;
+
+    [SerializeField]
+    private TextMeshProUGUI lifeCountText;
+
+    [Header("Alien Configuration")]
+    [Tooltip("Reference to the AlienManager script.")]
     [SerializeField]
     private AlienManager alienManager;
 
-    [Header("Bunkers")]
+    [Header("Bunker Configuration")]
     [SerializeField]
     private GameObject bunkerPrefab;
 
     [SerializeField]
     private Transform[] bunkerSpawnPoints;
 
+    [Header("Game Over UI")]
+    [SerializeField]
+    private TextMeshProUGUI gameOverUI;
+
+    [SerializeField]
+    private int gameOverDelaySeconds = 2;
+
+    #endregion
+
+    #region === Private Fields ===
+
+    private int currentPlayerIndex = 0;
+    private int[] playerLives = new int[] { 3, 3 };
     private int currentScore = 0;
 
-    private int[] playerLife = new int[] { 3, 3 };
-
-    private int currentPlayer = 0;
-
-    private List<GameObject> bunkers;
-
-    #endregion
-
-    #region Properties
-
-    /// <summary>
-    /// Indicates whether the game is currently paused.
-    /// </summary>
-    public bool IsGamePaused { get; private set; } = false;
-
+    private bool isGamePaused = false;
     private bool isGameRunning = false;
 
+    private List<GameObject> activeBunkers = new();
+
     #endregion
 
-    #region Unity Methods
+    #region === Properties ===
+
+    public bool IsGamePaused => isGamePaused;
+
+    #endregion
+
+    #region === Unity Events ===
 
     private void Awake()
     {
@@ -83,140 +87,147 @@ public class GameManager : MonoBehaviour
 
     #endregion
 
-    #region Game Flow
+    #region === Game Control ===
 
-    /// <summary>
-    /// Initializes the game by spawning the player and starting the alien manager.
-    /// </summary>
-    public void StartGame()
+    private void StartGame()
     {
         if (isGameRunning)
             StopGame();
 
-        TogglePauseGame(true);
+        PauseGame(true);
         isGameRunning = true;
 
-        SpawnBunkers();
+        InitializeBunkers();
         SpawnPlayer();
         alienManager.StartInvaderManager(this);
     }
 
-    public void StopGame()
+    private void StopGame()
     {
         isGameRunning = false;
 
-        // stop alien manager objects
         alienManager.StopAll();
+        activeBunkers.Where(b => b != null).ToList().ForEach(Destroy);
 
-        // stop bunkers
-        bunkers.Where(b => b != null).ToList().ForEach(Destroy);
-
-        // stop player
         var player = FindAnyObjectByType<Player>();
-        player.gameObject.SetActive(false);
-        Destroy(player.gameObject);
-    }
-
-    /// <summary>
-    /// Instantiates the player at the designated spawn point.
-    /// </summary>
-    public void SpawnPlayer()
-    {
-        if (playerPrefab != null && playerSpawnPoint != null)
+        if (player != null)
         {
-            Instantiate(
-                playerPrefab,
-                playerSpawnPoint.transform.position,
-                playerSpawnPoint.rotation,
-                playerSpawnPoint
-            );
-        }
-        else
-            Debug.LogWarning("Player prefab or spawn point not assigned in GameManager.");
-    }
-
-    private void SpawnBunkers()
-    {
-        bunkers = new List<GameObject>();
-
-        foreach (var trans in bunkerSpawnPoints)
-        {
-            var bunker = Instantiate(bunkerPrefab, trans.position, trans.rotation, trans);
-            bunkers.Add(bunker);
+            player.gameObject.SetActive(false);
+            Destroy(player.gameObject);
         }
     }
 
-    public void WinTheGame() { }
+    public void WinGame()
+    {
+        StartGame();
+    }
+
+    private async Task HandleGameOver()
+    {
+        gameOverUI.gameObject.SetActive(true);
+        await Task.Delay(gameOverDelaySeconds * 1000);
+        StopGame();
+        // TODO: Load Main Menu
+    }
+
     #endregion
 
-    #region Life Management
-    public void ChangeLifePoints()
+    #region === Player Handling ===
+
+    public void SpawnPlayer()
     {
         if (!isGameRunning)
             return;
-        playerLife[currentPlayer]--;
-        if (playerLife[currentPlayer] <= 0)
+
+        if (playerPrefab == null || playerSpawnPoint == null)
         {
-            // TODO: game over
-            isGameRunning = false;
+            Debug.LogWarning("Player prefab or spawn point is not assigned.");
+            return;
         }
 
+        Instantiate(
+            playerPrefab,
+            playerSpawnPoint.position,
+            playerSpawnPoint.rotation,
+            playerSpawnPoint
+        );
+    }
+
+    #endregion
+
+    #region === Bunker Handling ===
+
+    private void InitializeBunkers()
+    {
+        activeBunkers.Clear();
+
+        foreach (var spawn in bunkerSpawnPoints)
+        {
+            var bunker = Instantiate(bunkerPrefab, spawn.position, spawn.rotation, spawn);
+            activeBunkers.Add(bunker);
+        }
+    }
+
+    #endregion
+
+    #region === Life Management ===
+
+    public void ApplyLifeDamage()
+    {
+        if (!isGameRunning)
+            return;
+
+        playerLives[currentPlayerIndex]--;
         UpdateLifeUI();
+
+        if (playerLives[currentPlayerIndex] <= 0)
+        {
+            _ = HandleGameOver();
+            isGameRunning = false;
+        }
     }
 
     private void UpdateLifeUI()
     {
-        var pl = playerLife[currentPlayer];
-        lifeText.text = pl.ToString();
-        for (var i = 0; i < lifeImages.Length; i++)
+        int lives = playerLives[currentPlayerIndex];
+        lifeCountText.text = lives.ToString();
+
+        for (int i = 0; i < lifeIndicators.Length; i++)
         {
-            if (i < pl - 1)
-                lifeImages[i].color = Color.green;
-            else
-                lifeImages[i].color = Color.clear;
+            lifeIndicators[i].color = (i < lives) ? Color.green : Color.clear;
         }
     }
 
     #endregion
 
-    #region Score Management
+    #region === Score Management ===
 
-    /// <summary>
-    /// Adds points to the current score and updates the UI.
-    /// </summary>
-    /// <param name="points">The number of points to add.</param>
-    public void AddPoints(int points)
+    public void AddScore(int points)
     {
         if (!isGameRunning)
             return;
+
         currentScore += points;
         UpdateScoreUI();
     }
 
-    /// <summary>
-    /// Updates the score UI elements.
-    /// </summary>
-    private void UpdateScoreUI(int score = 0)
+    private void UpdateScoreUI()
     {
-        if (primaryScoreText != null && score == 0)
-            primaryScoreText.text = currentScore.ToString();
-
-        if (secondaryScoreText != null && score == 1)
-            secondaryScoreText.text = currentScore.ToString();
-
-        if (totalScoreText != null && score >= 2)
-            totalScoreText.text = currentScore.ToString();
+        primaryScoreUI.text = currentScore.ToString();
+        secondaryScoreUI.text = currentScore.ToString();
+        totalScoreUI.text = currentScore.ToString();
     }
 
     #endregion
 
-    #region Pause Management
+    #region === Pause Control ===
 
-    /// <summary>
-    /// Toggles the game's paused state.
-    /// /// </summary>
-    public void TogglePauseGame() => IsGamePaused = !IsGamePaused;
+    public void TogglePause() => isGamePaused = !isGamePaused;
 
-    public void TogglePauseGame(bool pause) => IsGamePaused = pause;
+    public void PauseGame(bool pause)
+    {
+        isGamePaused = pause;
+    }
+
     #endregion
 }

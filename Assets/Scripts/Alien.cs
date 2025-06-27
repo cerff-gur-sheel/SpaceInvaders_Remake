@@ -58,7 +58,7 @@ public class Alien : MonoBehaviour
     private void OnDestroy()
     {
         SetDead();
-        manager.AddPoints(GetAwardedPoints());
+        manager.AddScore(GetAwardedPoints());
     }
 
     #endregion
